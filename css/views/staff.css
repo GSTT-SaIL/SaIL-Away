@@ -1,0 +1,28 @@
+/* Staff view (#pane-staff) - js/views/staff.js. People -> their leave.
+   The look is the shared grouped list (.glist in base.css), without
+   sub-items; this file has only Staff's columns and edit fields. */
+
+#pane-staff{font-size:14px;letter-spacing:-.01em;color:var(--fg)}
+#pane-staff .list{min-width:560px;padding:6px 20px 32px}
+
+/* View mode: kind / dates / how long (row details, base.css .lined). */
+#pane-staff .row.leave{grid-template-columns:minmax(200px,1fr) 1fr}
+/* Edit mode: kind / note / from / to (or "Same day") / hours. */
+body.editing #pane-staff .row.leave:not(.lined){grid-template-columns:180px minmax(160px,1fr) 160px 160px 250px}
+body.editing #pane-staff .list{min-width:1000px}
+#pane-staff .row .oneday{font-size:var(--t-s)}
+#pane-staff .hours{display:flex;align-items:center;gap:12px}
+#pane-staff .hcheck{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-m);color:var(--fg-2);cursor:pointer;flex:none}
+#pane-staff .hcheck input{margin:0;accent-color:var(--accent)}
+#pane-staff .pair{display:flex;gap:5px;flex:1;max-width:220px}
+#pane-staff .pair .ed{width:50%}
+
+/* The note: capped so a long one doesn't widen the column for everyone;
+   cut short with "...", and shown in full in a bubble on hover
+   (.notepop, below - it lives on <body>, outside the clipped row). */
+#pane-staff .rd.note{max-width:240px}
+#pane-staff .ntext{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg-2)}
+.notepop{position:fixed;z-index:80;max-width:320px;padding:8px 12px;background:var(--bg);color:var(--fg);
+  font-size:var(--t-m);line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:var(--r);
+  box-shadow:var(--shadow-raised);pointer-events:none}
+.notepop[hidden]{display:none}

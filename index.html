@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SaIL-Away</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/views/courses.css">
+<link rel="stylesheet" href="css/views/schedule.css">
+<link rel="stylesheet" href="css/views/tickets.css">
+<link rel="stylesheet" href="css/views/sheet.css">
+<link rel="stylesheet" href="css/views/invoices.css">
+<link rel="stylesheet" href="css/views/invoicer.css">
+<link rel="stylesheet" href="css/views/forms.css">
+<link rel="stylesheet" href="css/views/staff.css">
+<link rel="stylesheet" href="css/views/apps.css">
+<link rel="stylesheet" href="css/views/ebcreate.css">
+</head>
+<body>
+
+<div class="banner"><img src="assets/sail-centre-logo.png" alt="SaIL Centre" id="brand-logo">
+  <!-- A site without its own logo shows a wordmark instead (js/core/site.js paintBrand). -->
+  <div class="sitemark" id="brand-mark" role="img" hidden><span class="nm"></span><span class="sub"></span></div>
+  <!-- The financial year on show - the whole board is scoped to it
+       (js/core/period.js). The same picker as the view picker
+       (js/core/picker.js). -->
+  <div class="fy">
+    <!-- The site on show (js/core/site.js) - only for someone with more
+         than one site; the same picker again. -->
+    <div class="fygroup" id="site-wrap" hidden>
+      <span class="fylabel" id="site-label">Site</span>
+      <div class="viewpick" id="sitep">
+        <button type="button" class="viewbtn" id="site-btn" aria-haspopup="listbox" aria-expanded="false" aria-controls="site-menu" aria-labelledby="site-label site-value">
+          <span class="viewlabel" id="site-value"></span>
+          <svg class="viewchev" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5l3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <ul class="viewmenu" id="site-menu" role="listbox" aria-labelledby="site-label" tabindex="-1" hidden></ul>
+      </div>
+    </div>
+    <span class="fylabel" id="fy-label">Financial year</span>
+    <div class="viewpick" id="fy">
+      <button type="button" class="viewbtn" id="fy-btn" aria-haspopup="listbox" aria-expanded="false" aria-controls="fy-menu" aria-labelledby="fy-label fy-value">
+        <span class="viewlabel" id="fy-value"></span>
+        <svg class="viewchev" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5l3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <ul class="viewmenu" id="fy-menu" role="listbox" aria-labelledby="fy-label" tabindex="-1" hidden></ul>
+    </div>
+  </div>
+  <!-- Hides/shows the banner for more room (js/core/shell.js; css .bantab).
+       Shows while the pointer is over the banner. -->
+  <button type="button" class="bantab" id="banner-toggle" aria-label="Hide the banner" aria-expanded="true">
+    <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 7.5L6 4.5l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+
+<div class="app">
+
+<div class="bar">
+  <!-- View picker: a custom listbox rather than a native <select>, whose
+       open list is drawn by the OS and can't be styled. The options are
+       built from the view registry in js/main.js. -->
+  <div class="viewpick" id="view">
+    <button type="button" class="viewbtn" id="view-btn" aria-haspopup="listbox" aria-expanded="false" aria-controls="view-menu">
+      <span class="viewlabel" id="view-label"></span>
+      <svg class="viewchev" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5l3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <ul class="viewmenu" id="view-menu" role="listbox" aria-labelledby="view-btn" tabindex="-1" hidden></ul>
+  </div>
+  <input id="q" class="filter" type="search" placeholder="Filter courses, rooms, leads" autocomplete="off">
+  <span class="count" id="count"></span>
+  <button class="tbtn" id="collapse-all">Expand all</button>
+  <button class="tbtn" id="logout-btn" style="display:none">Log out</button>
+  <button class="editbtn" id="edit-toggle">Edit</button>
+</div>
+
+<div class="toolbar" id="tb-timetable" style="display:none">
+  <span class="label" id="week-label"></span>
+  <span class="spacer"></span>
+  <!-- Which rows (rooms) to show, per person (js/core/tickpick.js;
+       toolbar.rowFilter) - locked just left of Today (the user's call). -->
+  <div class="viewpick tickpick" id="rowpick">
+    <button type="button" class="viewbtn" id="rowpick-btn" aria-haspopup="true" aria-expanded="false" aria-controls="rowpick-menu">
+      <span class="viewlabel"></span>
+      <svg class="viewchev" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5l3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="viewmenu tickmenu" id="rowpick-menu" hidden></div>
+  </div>
+  <button class="tbtn" id="this-week">Today</button>
+  <button class="step" id="prev-week" aria-label="Previous week">
+    <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M6 1L1 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <button class="step" id="next-week" aria-label="Next week">
+    <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+
+<div class="pane on" id="pane-courses">
+  <div class="list glist">
+    <div id="rows"></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-timetable">
+  <div class="ttwrap"><div class="tt" id="tt"></div></div>
+  <div class="keybar" id="tt-key">
+    <span class="keylabel">Booking type</span>
+    <span class="legend" id="legend-b"></span>
+    <span class="spacer"></span>
+    <!-- The public availability page (availability.html) is reached only by
+         this link now - the board's Availability view was removed
+         (the user's call, 2026-10-09). Not in All (the key bar is hidden there). -->
+    <span class="shared" id="share-av-done" style="display:none">Copied</span>
+    <button class="sbtn primary sm" id="share-av" title="Copy the public link to this site's room availability">Copy availability link</button>
+  </div>
+</div>
+
+<div class="pane" id="pane-rota">
+  <div class="ttwrap"><div class="tt" id="ro"></div></div>
+  <div class="keybar" id="ro-key">
+    <span class="keylabel">Key</span>
+    <span class="legend" id="legend-ro"></span>
+  </div>
+</div>
+
+<div class="pane" id="pane-invoices">
+  <div class="list glist">
+    <div id="inv-rows"></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-forms">
+  <div class="list glist">
+    <div id="form-rows"></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-staff">
+  <div class="list glist">
+    <div id="staff-rows"></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-apps">
+  <div id="app-cards"></div>
+</div>
+
+<div class="pane" id="pane-tickets">
+  <!-- Same toolbar as the Timetable's week stepper, for months. -->
+  <div class="toolbar">
+    <span class="label" id="tk-month"></span>
+    <span class="tkstatus" id="tk-status"></span>
+    <span class="spacer"></span>
+    <button class="tbtn" id="tk-refresh">Refresh</button>
+    <button class="tbtn" id="tk-today">Today</button>
+    <button class="step" id="tk-prev" aria-label="Previous month">
+      <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M6 1L1 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="step" id="tk-next" aria-label="Next month">
+      <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div class="tkbody">
+    <div class="ttwrap"><div class="tkyear" id="tk-grid"></div></div>
+    <div class="tkloading" id="tk-loading" role="status" hidden><span class="spinner lg"></span><span>Loading events from Eventbrite&hellip;</span></div>
+  </div>
+  <div class="keybar">
+    <!-- No "Sign-ups" / "Eventbrite - read-only" labels (the user's call,
+         2026-10-14): the gradient says it, and names it for screen readers. -->
+    <span class="tklegend" aria-label="Colour by sign-ups, from few (red) through half full (amber) to full (green)">
+      <span style="--h:0">Few</span><span style="--h:70">Half full</span><span style="--h:140">Full</span>
+    </span>
+    <span class="spacer"></span>
+    <!-- Bottom right, like the Timetable's "Copy availability link" (the
+         user's call, 2026-10-14): opens the course form pop-up
+         (js/views/eventbrite/create.js); admins and editors only. -->
+    <button type="button" class="sbtn primary sm" id="tk-create" hidden>Create event</button>
+  </div>
+</div>
+
+</div>
+
+<div class="backdrop" id="backdrop">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheethead">
+      <div class="sheettitle">
+        <span class="pill" id="sheet-pill"></span>
+        <h2 id="sheet-title"></h2>
+        <p class="sub" id="sheet-sub"></p>
+      </div>
+      <button class="sbtn primary" id="sheet-close">Close</button>
+    </div>
+
+    <!-- Filing tabs: one per function of the item. A tab is a button here
+         plus a panel below with the same data-tab; js/views/sheet.js says
+         which tabs each kind of item shows. -->
+    <div class="ftabs" role="tablist" aria-label="Sections">
+      <button type="button" role="tab" class="ftab" id="sheet-tab-details" data-tab="details" aria-controls="sheet-panel-details">Details</button>
+      <button type="button" role="tab" class="ftab" id="sheet-tab-allocate" data-tab="allocate" aria-controls="sheet-panel-allocate">Allocate <span class="fcount"></span></button>
+      <button type="button" role="tab" class="ftab" id="sheet-tab-notes" data-tab="notes" aria-controls="sheet-panel-notes">Notes <span class="fcount" id="note-count"></span></button>
+      <button type="button" role="tab" class="ftab" id="sheet-tab-attendees" data-tab="attendees" aria-controls="sheet-panel-attendees">Attendees <span class="fcount"></span></button>
+      <!-- Forms (js/views/forms.js) -->
+      <button type="button" role="tab" class="ftab" id="sheet-tab-create" data-tab="create" aria-controls="sheet-panel-create">New course</button>
+      <button type="button" role="tab" class="ftab" id="sheet-tab-preview" data-tab="preview" aria-controls="sheet-panel-preview">Preview</button>
+      <button type="button" role="tab" class="ftab" id="sheet-tab-questions" data-tab="questions" aria-controls="sheet-panel-questions">Questions <span class="fcount"></span></button>
+      <button type="button" role="tab" class="ftab" id="sheet-tab-responses" data-tab="responses" aria-controls="sheet-panel-responses">Responses <span class="fcount"></span></button>
+    </div>
+
+    <div class="fpanels">
+      <section class="fpanel" role="tabpanel" id="sheet-panel-details" data-tab="details" aria-labelledby="sheet-tab-details">
+        <dl id="sheet-body"></dl>
+        <div class="actions">
+          <a class="sbtn primary" id="sheet-action" href="#"></a>
+        </div>
+      </section>
+
+      <section class="fpanel notes" role="tabpanel" id="sheet-panel-notes" data-tab="notes" aria-labelledby="sheet-tab-notes">
+        <!-- Several notes per item: the list on the left (newest first),
+             the selected one on the right. -->
+        <aside class="notelist">
+          <button type="button" class="sbtn primary" id="note-new">+ New note</button>
+          <div class="noteitems" id="note-list"></div>
+        </aside>
+        <div class="noteedit" id="note-edit">
+          <div class="notehead">
+            <input class="notetitle" id="note-title" maxlength="200" aria-label="Note title" placeholder="Title">
+            <div class="notetoolbar" id="note-toolbar">
+              <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+              <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+              <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+              <button type="button" data-cmd="insertUnorderedList" title="Bulleted list">&bull;&nbsp;List</button>
+              <button type="button" data-cmd="insertOrderedList" title="Numbered list">1.&nbsp;List</button>
+            </div>
+          </div>
+          <p class="notemeta" id="note-meta"></p>
+          <div class="noteinput" id="note-input" contenteditable="true"
+            aria-label="Note" data-placeholder="Write the note&hellip;"></div>
+          <div class="notefoot">
+            <p class="notestatus" id="note-status">&nbsp;</p>
+            <button type="button" class="sbtn link danger" id="note-delete">Delete note</button>
+          </div>
+        </div>
+        <p class="noteempty" id="note-empty"></p>
+      </section>
+
+      <!-- A session's allocated staff (js/views/sheet.js fillAllocate). -->
+      <section class="fpanel" role="tabpanel" id="sheet-panel-allocate" data-tab="allocate" aria-labelledby="sheet-tab-allocate">
+        <div class="fbody"></div>
+      </section>
+
+      <!-- Filled by the view that opened the pop-up (Tickets: Eventbrite sign-ups). -->
+      <section class="fpanel" role="tabpanel" id="sheet-panel-attendees" data-tab="attendees" aria-labelledby="sheet-tab-attendees">
+        <div class="fbody"></div>
+      </section>
+
+      <!-- The Tickets page's "Create event" form (js/views/eventbrite/create.js). -->
+      <section class="fpanel" role="tabpanel" id="sheet-panel-create" data-tab="create" aria-labelledby="sheet-tab-create">
+        <div class="fbody"></div>
+      </section>
+
+      <!-- Filled by the Forms view: the form as respondents see it, its
+           question editor, and its responses. -->
+      <section class="fpanel" role="tabpanel" id="sheet-panel-preview" data-tab="preview" aria-labelledby="sheet-tab-preview">
+        <div class="fbody"></div>
+      </section>
+      <section class="fpanel" role="tabpanel" id="sheet-panel-questions" data-tab="questions" aria-labelledby="sheet-tab-questions">
+        <div class="fbody"></div>
+      </section>
+      <section class="fpanel" role="tabpanel" id="sheet-panel-responses" data-tab="responses" aria-labelledby="sheet-tab-responses">
+        <div class="fbody"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop open" id="login-backdrop">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <h2 id="login-title">Sign in</h2>
+    <p class="sub">Sign in to view the bookings board.</p>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
+      <input class="ed" id="login-email" type="email" placeholder="Email" autocomplete="username">
+      <input class="ed" id="login-password" type="password" placeholder="Password" autocomplete="current-password">
+      <label class="remember"><input type="checkbox" id="login-remember"> Keep me signed in on this computer</label>
+    </div>
+    <p class="sub" id="login-error" style="display:none;color:#b3261e;margin-top:10px"></p>
+    <div class="actions">
+      <button class="sbtn primary" id="login-submit">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

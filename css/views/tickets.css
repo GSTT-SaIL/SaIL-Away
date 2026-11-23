@@ -1,0 +1,100 @@
+/* Tickets view (#pane-tickets) - js/views/tickets.js. A full-page month
+   calendar drawn like the Timetable (views/schedule.css): the same toolbar
+   and key bar (.toolbar, .ttwrap, .keybar are shared), a sticky blurred
+   day header, hairline cells, today tinted, and each event a tinted
+   rounded block like a booking (.blk). Classes are prefixed tk- or scoped
+   to the pane. The Attendees tab's list (in the shared pop-up, #backdrop)
+   is at the end. */
+
+#pane-tickets{font-size:14px;letter-spacing:-.01em;color:var(--fg)}
+#pane-tickets.on{display:flex;flex-direction:column;overflow:hidden}
+#pane-tickets .tkstatus{font-size:12px;color:var(--fg-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* The calendar and, over it while events load from Eventbrite, a spinner
+   (on a light veil, so a refresh shows the month underneath). */
+#pane-tickets .tkbody{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+#pane-tickets .tkloading{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;font-size:var(--t-m);color:var(--fg-2);
+  background:color-mix(in srgb,var(--bg) 80%,transparent)}
+
+/* The year as twelve month pages side by side (.tkyear > .tkcal), each the
+   width of the view and its full height: seven day columns, a day-name row,
+   then six weeks sharing the height (never under 84px, so on a short
+   screen the page scrolls down). The same size every month (the user's
+   call, 2026-10-07). The view scrolls sideways between months
+   (core/strip.js) by drag, swipe or the arrows; a firm line marks where
+   one month's page meets the next. cqw/cqh: .ttwrap's size. */
+#pane-tickets .ttwrap{container-type:size;cursor:grab}
+#pane-tickets .tkev{cursor:pointer}
+#pane-tickets .tkyear{display:flex;width:max-content;min-height:100%}
+#pane-tickets .tkcal{flex:none;width:max(940px,100cqw);display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+  grid-template-rows:auto repeat(6,minmax(84px,1fr));min-height:100cqh}
+#pane-tickets .tkcal+.tkcal{border-left:1px solid var(--line-strong)}
+/* Day names: one sticky row per month (a subgrid) - never a sticky or
+   blurred cell per day, which lagged the Timetable (CLAUDE.md). */
+#pane-tickets .tkcal>.hrow{grid-column:1 / -1;display:grid;grid-template-columns:subgrid;position:sticky;top:0;z-index:3;
+  background:var(--bg);border-bottom:1px solid var(--line-strong)}
+#pane-tickets .tkcal .h{height:44px;border-left:1px solid var(--line);display:flex;align-items:center;padding:0 12px}
+#pane-tickets .tkcal .h:first-child{border-left:0}
+#pane-tickets .tkcal .h .dow{font-size:11px;color:var(--fg-3);letter-spacing:.02em}
+
+#pane-tickets .tkcal>.cell{border-top:1px solid var(--line);border-left:1px solid var(--line);padding:6px 8px 8px;
+  min-width:0;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;background:var(--bg)}
+/* Children: the day-name row, then 42 days - so the first column is 7n+2
+   and the first week is children 2-8. */
+#pane-tickets .tkcal>.cell:nth-child(7n+2){border-left:0}
+#pane-tickets .tkcal>.cell:nth-child(-n+8){border-top:0}
+/* Weekends and days outside the month recede a little. */
+#pane-tickets .tkcal>.cell.we{background:color-mix(in srgb,var(--group) 50%,var(--bg))}
+#pane-tickets .tkcal>.cell.out .dnum{color:var(--fg-3);font-weight:500}
+#pane-tickets .tkcal>.cell.today{background:var(--today)}
+#pane-tickets .dnum{flex:none;font-size:13px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums;padding-left:2px}
+#pane-tickets .cell.today .dnum{color:var(--accent)}
+
+/* An event: the Timetable's booking block, coloured by how full it is.
+   --h runs 0deg (empty, red) through amber to 140deg (full, green), so the
+   month scans at a glance; lightness is fixed so the label stays legible
+   through the yellow midpoint. No capacity or count = neutral grey. */
+#pane-tickets .tkev{flex:none;display:flex;flex-direction:column;gap:1px;width:100%;text-align:left;
+  border-radius:6px;padding:4px 8px 5px;line-height:1.15;cursor:pointer;
+  background:hsl(var(--h) 70% 93%);color:hsl(var(--h) 75% 24%)}
+#pane-tickets .tkev.unrated{background:var(--group);color:var(--fg)}
+#pane-tickets .tkev:hover{filter:brightness(.95)}
+#pane-tickets .tkev:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+#pane-tickets .tkev .bt{font-size:11.5px;font-weight:600;letter-spacing:-.01em;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#pane-tickets .tkev .bm{font-size:10px;opacity:.75;font-variant-numeric:tabular-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Key: one long bar running through the same tints as the event blocks,
+   empty (0deg) to full (140deg), with the labels at its start, middle and
+   end in their own colour. Stops every 35deg keep it from going muddy
+   between red and green. */
+#pane-tickets .tklegend{display:flex;align-items:center;justify-content:space-between;width:340px;height:26px;
+  padding:0 12px;border-radius:var(--r-pill);font-size:var(--t-s);font-weight:600;letter-spacing:-.01em;
+  background:linear-gradient(90deg,hsl(0 70% 90%),hsl(35 70% 90%),hsl(70 70% 90%),hsl(105 70% 90%),hsl(140 70% 90%))}
+#pane-tickets .tklegend span{color:hsl(var(--h) 75% 24%)}
+
+/* ---------- Details tab (in the shared pop-up) ----------
+   "Signed up": the count as a pill in the event's sign-up colour (--h, as
+   on the calendar), a bar filled to how full it is, and the percentage. */
+#backdrop .tkfill{display:inline-flex;align-items:center;gap:10px}
+#backdrop .tkfillcount{font-size:var(--t-m);font-weight:600;border-radius:var(--r-pill);padding:2px 10px;
+  font-variant-numeric:tabular-nums;background:hsl(var(--h) 72% 88%);color:hsl(var(--h) 85% 23%)}
+#backdrop .tkfill.unrated .tkfillcount{background:var(--group);color:var(--fg-2)}
+#backdrop .tkfillbar{width:120px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+#backdrop .tkfillbar i{display:block;height:100%;border-radius:3px;background:hsl(var(--h) 60% 45%)}
+#backdrop .tkfillpct{font-size:12px;color:var(--fg-3);font-variant-numeric:tabular-nums}
+
+/* ---------- Attendees tab (in the shared pop-up) ---------- */
+#backdrop .tknote{margin:0;font-size:13px;color:var(--fg-2)}
+#backdrop .tksum{margin:0 0 12px;font-size:12px;color:var(--fg-3)}
+#backdrop .tkatt{width:100%;border-collapse:collapse;font-size:var(--t-base)}
+#backdrop .tkatt th{text-align:left;font-size:11px;font-weight:500;color:var(--fg-3);letter-spacing:.02em;
+  padding:0 16px 8px 0;border-bottom:1px solid var(--line-strong)}
+#backdrop .tkatt td{padding:9px 16px 9px 0;border-bottom:1px solid var(--line);color:var(--fg-2);
+  overflow-wrap:anywhere;vertical-align:top}
+#backdrop .tkatt td.nm{color:var(--fg);font-weight:500}
+#backdrop .tkatt a{color:inherit}
+#backdrop .tkatt a:hover{color:var(--accent)}
+#backdrop .tkatt .in{color:var(--ok);font-weight:600}

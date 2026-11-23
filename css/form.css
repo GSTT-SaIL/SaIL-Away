@@ -1,0 +1,51 @@
+/* The public form page (form.html, js/form.js). Uses the board's palette
+   and plain controls (css/base.css); everything here is under body.fpage. */
+/* No banner on the form page (the user's call, 2026-10-07): the page is
+   flat white, not a rounded sheet lifted off a banner. */
+body.fpage .app{overflow:auto;display:block;margin-top:0;border-radius:0;box-shadow:none}
+.fwrap{max-width:760px;margin:0 auto;padding:28px 20px 60px}
+.fcard{background:var(--bg)}
+.fcard h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0 0 10px}
+.fintro,.fdone{color:var(--fg-2);font-size:15px;line-height:1.5}
+.fintro p,.fdone p,.fhelp p,.finfo p{margin:0 0 8px}
+.fanon{font-size:13px;color:var(--fg-3);margin:0 0 4px}
+.fstatus{color:var(--fg-2);font-size:15px}
+.fpreview{background:var(--group);color:var(--fg-2);border-radius:var(--r-l);padding:10px 14px;font-size:13px;margin:0 0 20px}
+
+#fform{margin-top:22px;display:flex;flex-direction:column;gap:22px}
+.fblock[hidden]{display:none}
+.flabel{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
+.freq{color:var(--warn);font-weight:600}
+.fhelp{font-size:13px;color:var(--fg-2);margin:-2px 0 8px;line-height:1.45}
+.finfo{border-top:1px solid var(--line);padding-top:18px}
+.finfo h3{font-size:17px;margin:0 0 6px}
+.finfo p{color:var(--fg-2);font-size:14px}
+
+#fform input[type=text],#fform input[type=email],#fform input[type=number],#fform input[type=date],#fform select,#fform textarea{
+  width:100%;max-width:520px;min-height:40px;padding:8px 12px;font:inherit;font-size:15px;
+  border:1px solid var(--line-strong);border-radius:var(--r);background:var(--bg);color:var(--fg)}
+#fform textarea{max-width:none;resize:vertical}
+#fform input:focus,#fform select:focus,#fform textarea:focus{outline:none;border-color:var(--accent);
+  box-shadow:var(--focus)}
+.fopts{display:flex;gap:8px}
+.fopts.list{flex-direction:column;align-items:flex-start}
+.fopts.scale{flex-wrap:wrap}
+.fopt{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:15px}
+.fopts.scale .fopt{gap:0}
+.fopts.scale .fopt input{position:absolute;opacity:0;pointer-events:none}
+.fopts.scale .fopt span{min-width:44px;height:40px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--line-strong);border-radius:var(--r)}
+.fopts.scale .fopt input:checked+span{background:var(--accent);border-color:var(--accent);color:#fff}
+.fopts.scale .fopt input:focus-visible+span{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 35%,transparent)}
+.ftick{display:flex;align-items:flex-start;gap:10px;font-size:15px;line-height:1.45;cursor:pointer}
+.ftick input{margin-top:3px;width:18px;height:18px;flex:none}
+
+/* The honeypot: off-screen for people, still there for bots. */
+.fhp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.fproblem{background:var(--warn-bg);color:var(--warn);border-radius:var(--r-l);padding:12px 16px;font-size:14px}
+.fproblem ul{margin:6px 0 0;padding-left:18px}
+.fsubmit{display:flex;align-items:center;gap:16px}
+.fsubmit .sbtn{min-width:140px;height:40px;font-size:15px}
+.freqnote{font-size:13px;color:var(--fg-3)}
+@media (max-width:600px){ .fcard h1{font-size:22px} }
+#fsend:disabled{opacity:.45;cursor:default}

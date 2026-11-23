@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Style guide - SaIL-Away</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<!-- The real stylesheets: everything below is drawn by them, so this page
+     shows the components as they really are. The guide is docs/DESIGN.md.
+     Static markup only - no data, no sign-in. -->
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/views/sheet.css">
+<link rel="stylesheet" href="css/views/forms.css">
+<link rel="stylesheet" href="css/views/invoicer.css">
+<style>
+  /* This page's own layout only. */
+  body{overflow:auto;display:block;background:var(--group)}
+  .sg{max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+  .sg h1{font-size:var(--t-display);margin:0 0 4px}
+  .sg>p{color:var(--fg-2);margin:0 0 28px}
+  /* Only the guide's own sections - components inside use <section> too. */
+  .sg>section{background:var(--bg);border:1px solid var(--line-strong);border-radius:var(--r-l);padding:20px 24px;margin-bottom:18px}
+  .sg h2{font-size:var(--t-xl);margin:0 0 4px}
+  .sg h2+p{color:var(--fg-2);margin:0 0 16px}
+  .sg h3{font-size:var(--t-s);font-weight:600;color:var(--fg-2);text-transform:uppercase;letter-spacing:.05em;margin:18px 0 8px}
+  .row-of{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .sw{width:120px;border:1px solid var(--line-strong);border-radius:var(--r);overflow:hidden;font-size:var(--t-s)}
+  .sw i{display:block;height:44px}
+  .sw span{display:block;padding:6px 8px}
+  .sw code{color:var(--fg-2)}
+  .type div{margin:4px 0}
+  .radii div{width:64px;height:44px;background:var(--group);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;font-size:var(--t-s)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;max-width:640px}
+  .greypanel{background:var(--group);padding:16px;border-radius:var(--r-l)}
+  .demo-pop{height:auto!important;max-height:none!important;width:100%!important;box-shadow:none!important;border:1px solid var(--line-strong)}
+</style>
+</head>
+<body class="pub">
+<div class="banner"><img src="assets/sail-centre-logo.png" alt="SaIL Centre"></div>
+<main class="sg">
+  <h1>SaIL-Away style guide</h1>
+  <p>Every shared component, drawn by the real CSS. The rules are in <code>docs/DESIGN.md</code>.</p>
+
+  <section>
+    <h2>Colour</h2><p>Use the token, never the raw value.</p>
+    <div class="row-of">
+      <div class="sw"><i style="background:var(--fg)"></i><span>Text<br><code>--fg</code></span></div>
+      <div class="sw"><i style="background:var(--fg-2)"></i><span>Secondary<br><code>--fg-2</code></span></div>
+      <div class="sw"><i style="background:var(--fg-3)"></i><span>Hint<br><code>--fg-3</code></span></div>
+      <div class="sw"><i style="background:var(--line-strong)"></i><span>Borders<br><code>--line-strong</code></span></div>
+      <div class="sw"><i style="background:var(--group)"></i><span>Grey fill<br><code>--group</code></span></div>
+      <div class="sw"><i style="background:var(--accent)"></i><span>Accent<br><code>--accent</code></span></div>
+      <div class="sw"><i style="background:var(--danger)"></i><span>Danger<br><code>--danger</code></span></div>
+      <div class="sw"><i style="background:var(--warn)"></i><span>Warning<br><code>--warn</code></span></div>
+      <div class="sw"><i style="background:var(--ok)"></i><span>Success<br><code>--ok</code></span></div>
+      <div class="sw"><i style="background:var(--edit)"></i><span>Edit mode<br><code>--edit</code></span></div>
+      <div class="sw"><i style="background:var(--banner)"></i><span>Banner<br><code>--banner</code></span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Type</h2><p>System fonts; eight sizes.</p>
+    <div class="type">
+      <div style="font-size:var(--t-display);font-weight:600">Display 26 - document and form titles</div>
+      <div style="font-size:var(--t-xxl);font-weight:600">XXL 22 - big headings, totals</div>
+      <div style="font-size:var(--t-xl);font-weight:600">XL 17 - pop-up and section titles</div>
+      <div style="font-size:var(--t-l);font-weight:700">L 15 - group names, question wording</div>
+      <div style="font-size:var(--t-base)">Base 14 - fields, pop-up body, tabs</div>
+      <div style="font-size:var(--t-m)">M 13 - body, buttons, rows</div>
+      <div style="font-size:var(--t-s);color:var(--fg-2)">S 12 - labels, tags, counts</div>
+      <div style="font-size:var(--t-xs);color:var(--fg-3)">XS 11 - pills, tiny meta</div>
+    </div>
+    <h3>Corners</h3>
+    <div class="row-of radii">
+      <div style="border-radius:var(--r-s)">6</div><div style="border-radius:var(--r)">8</div>
+      <div style="border-radius:var(--r-l)">12</div><div style="border-radius:var(--r-xl)">16</div>
+      <div style="border-radius:var(--r-pill)">pill</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Surfaces and shadows</h2><p>White surfaces, told apart by shadow. Grey (<code>--group</code>) is for panels holding white cards.</p>
+    <h3>Banner and board</h3>
+    <div style="border:1px solid var(--line-strong);border-radius:var(--r-l);overflow:hidden;display:flex;flex-direction:column;max-width:640px;height:126px">
+      <div class="banner" style="height:86px;padding:0 20px 18px"><img src="assets/sail-centre-logo.png" alt="" style="width:110px;height:48px"></div>
+      <div class="app" style="flex:none;height:80px;display:flex;align-items:flex-start;padding:16px 16px 0;font-size:var(--t-s);color:var(--fg-2)">The board's rounded top casts a soft shadow up onto the white banner.</div>
+    </div>
+    <h3>Cards</h3>
+    <div class="row-of" style="align-items:stretch;gap:20px">
+      <div class="greypanel" style="width:260px"><div style="background:var(--bg);border:1px solid var(--line-strong);border-radius:var(--r-l);box-shadow:var(--shadow-card);padding:14px 16px;font-size:var(--t-m)">On grey: <code>--line-strong</code> border + <code>--shadow-card</code></div></div>
+      <div style="width:260px;padding:16px;border:1px dashed var(--line-strong);border-radius:var(--r-l)"><div style="background:var(--bg);border-radius:var(--r-l);box-shadow:var(--shadow-raised);padding:14px 16px;font-size:var(--t-m)">On white: no border, <code>--shadow-raised</code></div></div>
+      <div style="width:260px;padding:16px;border:1px dashed var(--line-strong);border-radius:var(--r-l)"><div style="background:var(--bg);border-radius:var(--r-xl);box-shadow:var(--shadow-pop);padding:14px 16px;font-size:var(--t-m)">Pop-ups and dialogs: <code>--shadow-pop</code></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Buttons</h2><p>Pill-shaped. One primary per area.</p>
+    <div class="row-of">
+      <button class="sbtn primary">Save</button>
+      <button class="sbtn">Cancel</button>
+      <button class="sbtn danger">Delete</button>
+      <button class="sbtn link">Copy link</button>
+      <button class="sbtn link danger">Delete note</button>
+      <button class="sbtn sm">Small</button>
+      <button class="sbtn big primary">Big</button>
+      <button class="sbtn primary" disabled>Disabled</button>
+    </div>
+    <h3>Bars and toolbars</h3>
+    <div class="row-of">
+      <button class="tbtn">Expand all</button><button class="tbtn">Log out</button>
+      <button class="step" aria-label="Previous"><svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M6 1L1 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="editbtn">Edit</button><button class="editbtn on">Done</button>
+    </div>
+    <h3>Icon buttons</h3>
+    <div class="row-of">
+      <button class="ibtn" title="Move up" aria-label="Move up">&uarr;</button>
+      <button class="ibtn" title="Move down" aria-label="Move down">&darr;</button>
+      <button class="ibtn danger" title="Delete" aria-label="Delete">&times;</button>
+      <button class="ibtn" disabled aria-label="Disabled">&uarr;</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Fields</h2><p>White with a firm border; the accent ring on focus.</p>
+    <div class="grid2">
+      <label class="fef"><span>Text</span><input class="ed" placeholder="Placeholder"></label>
+      <label class="fef"><span>Select</span><select class="ed"><option>Choose...</option><option>One</option></select></label>
+      <label class="fef"><span>Date</span><input class="ed" type="date"></label>
+      <label class="fef"><span>Read-only</span><input class="ed" readonly value="https://sail-away.uk/f/abc"></label>
+      <label class="fef" style="grid-column:1/-1"><span>Textarea</span><textarea class="ed" rows="2">Grows with its content</textarea></label>
+      <label class="fef"><span>Disabled</span><input class="ed" disabled value="Viewer"></label>
+      <label class="fef"><span>Search</span><input class="filter" style="margin:0;width:100%" placeholder="Filter courses"></label>
+    </div>
+    <h3>Compact (inside board rows)</h3>
+    <div class="glist greypanel" style="max-width:640px"><input class="ed" value="Advanced Life Support" style="width:260px"> <select class="ed" style="width:160px"><option>Sim Suite 1</option></select></div>
+  </section>
+
+  <section>
+    <h2>Dropdowns</h2><p>The picker (one choice) and the tick-list (show/hide rows - accent and a dot while anything is hidden).</p>
+    <div class="row-of" style="align-items:flex-start;gap:24px;padding-bottom:200px">
+      <div class="viewpick"><button type="button" class="viewbtn"><span class="viewlabel">Timetable</span><svg class="viewchev" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5l3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+      <div class="viewpick tickpick"><button type="button" class="viewbtn"><span class="viewlabel">All rooms</span><svg class="viewchev" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5l3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+      <div class="viewpick tickpick"><button type="button" class="viewbtn filtered" aria-expanded="true"><span class="viewlabel">3 of 4 rooms</span><svg class="viewchev" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5l3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="viewmenu tickmenu" style="left:0;right:auto;animation:none">
+          <label class="tickrow tickall"><input type="checkbox" class="sg-mixed"> Select all</label>
+          <label class="tickrow"><input type="checkbox" checked><span class="ticklabel">Sim Suite 1</span></label>
+          <label class="tickrow"><input type="checkbox"><span class="ticklabel">Sim Suite 2</span></label>
+          <label class="tickrow"><input type="checkbox" checked><span class="ticklabel">Skills Lab 1</span><span class="sitetag" style="--site:#0e7c86">CSSC</span></label>
+          <label class="tickrow"><input type="checkbox" checked><span class="ticklabel">Debrief Room</span></label>
+        </div>
+      </div>
+    </div>
+    <script>document.querySelector(".sg-mixed").indeterminate = true;</script>
+  </section>
+
+  <section>
+    <h2>Grouped list</h2><p>Category header, item rows, sub-items in a bordered card. Each row: a locked title, then its details in lined-up columns (counts first) that scroll under the title when narrow. Courses, Invoices and Forms.</p>
+    <div class="list glist" style="padding:0">
+      <section class="gsec"><div class="grouphead" aria-expanded="true" style="--gink:#0060c0;--gtint:#e8f1fd">
+        <div class="gname"><svg class="chev" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Course evaluation <span class="gcount">1 set, 2 forms</span></div></div>
+        <div class="gcard">
+          <div class="row item lined">
+            <div class="name"><button class="exp" aria-expanded="true"><svg class="chev" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="ititle">Foundation</span></div>
+            <div class="rdata"><span class="rd calc">2 forms</span><span class="rd calc">8 responses</span></div></div>
+          <div class="subs"><div class="subcard">
+            <div class="row sub lined"><div class="name"><span class="ititle">Foundation Pre</span></div>
+              <div class="rdata"><span class="rd calc" style="width:118px">8 responses</span><span class="rd ok" style="width:84px">Open</span><span class="rd" style="width:102px">Last 4 Oct</span></div></div>
+            <div class="row sub lined"><div class="name"><span class="ititle">Foundation Post</span></div>
+              <div class="rdata"><span class="rd calc" style="width:118px">0 responses</span><span class="rd" style="width:84px">Closed</span><span class="rd blank" style="width:102px">&nbsp;</span></div></div>
+          </div></div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section>
+    <h2>Item pop-up</h2><p>All white: the panel and open tab lie over the header, separated by shadow alone (cast upward). Blue inactive tabs; Close is the primary button. The Questions editor: white cards lifted off the white panel by <code>--shadow-raised</code>, no outlines.</p>
+    <div id="backdrop" style="position:static;display:block;background:none;backdrop-filter:none;padding:0">
+      <div class="sheet demo-pop" role="presentation">
+        <div class="sheethead"><div class="sheettitle"><span class="pill" style="background:#e8f1fd;color:#0060c0">Course evaluation</span>
+          <h2>Foundation Pre</h2><p class="sub">Foundation</p></div><button class="sbtn primary">Close</button></div>
+        <div class="ftabs"><button class="ftab">Preview</button><button class="ftab on">Questions <span class="fcount">6</span></button><button class="ftab">Responses <span class="fcount">8</span></button></div>
+        <div class="fpanels"><section class="fpanel">
+          <div class="fed"><div class="fq"><div class="fqhead"><span class="fqn">1</span><select class="ed"><option>Choice</option></select>
+            <label class="fecheck"><input type="checkbox" checked> Required</label><span class="fqspacer"></span>
+            <button class="ibtn">&uarr;</button><button class="ibtn">&darr;</button><button class="ibtn danger">&times;</button></div>
+            <div class="fqbody"><label class="fef"><span>Question</span><input class="ed fqlabel" value="What is your current NHS role?"></label>
+            <label class="fef"><span>Help text <em>(optional)</em></span><textarea class="ed" rows="1"></textarea></label></div></div></div>
+        </section></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pills, badges and messages</h2><p>Status and counts; problems in orange; deletes in red.</p>
+    <div class="row-of">
+      <span class="iv-pill iv-st-quoted">Quote generated</span>
+      <span class="iv-pill iv-st-invoiced">Invoice generated</span>
+      <span class="iv-pill iv-st-paid">Paid</span>
+      <span class="glist"><span class="tag" style="background:var(--group)">3 sessions</span></span>
+      <span id="backdrop" style="display:inline"><span class="fqn">2</span></span>
+      <span class="fstate live">Open</span><span class="fstate">Closed</span>
+    </div>
+    <h3>Problem</h3>
+    <div id="invoicer" style="display:block"><div class="iv-problem" style="max-width:520px"><strong>Before the quote can be generated:</strong><ul><li>Client</li></ul></div></div>
+    <h3>Empty state</h3>
+    <div class="glist"><div class="empty" style="margin:12px 0 0">No forms yet.</div></div>
+    <h3>Loading</h3>
+    <div class="row-of"><span class="spinner"></span><span class="spinner lg"></span>
+      <p class="loading" style="margin:0"><span class="spinner"></span>Loading attendees from Eventbrite&hellip;</p></div>
+  </section>
+</main>
+</body>
+</html>

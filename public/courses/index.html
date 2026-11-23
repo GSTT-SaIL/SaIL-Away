@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Upcoming Courses</title>
+<!-- Public tool "courses" (docs/ARCHITECTURE.md "Public tools"): reached by a
+     secret link, /public/courses/#<token>. Not for search engines, and the
+     address (with its code) is never passed on to sites it links to. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="../../assets/favicon-32.png">
+<script src="../../js/config.js"></script>
+<style>
+/* Staff course list (the user's "CoH to EB Event Page" app, built into the board 2026-10-14). Facilities tokens. Light only.
+   This page never holds the Eventbrite token: it reads /api/public/courses/upcoming (pb_hooks/public_courses.pb.js),
+   which the server fills from SaIL's Eventbrite, cut down to what the cards show. */
+:root {
+  color-scheme: light;
+  --fg: #1D1D1F; --fg-2: #6E6E73; --fg-3: #86868B;
+  --line: #E5E5EA; --line-strong: #D2D2D7;
+  --group: #F5F5F7; --row-hover: #EDEDF0; --bg: #FFFFFF;
+  --accent: #0071E3; --warn: #B25000; --warn-bg: #FFF4E5; --danger: #D70015; --danger-bg: #FFEBEE;
+  --r-s: 6px; --r: 8px; --r-l: 12px; --r-pill: 999px;
+  --t-xs: 11px; --t-s: 12px; --t-m: 13px; --t-base: 14px; --t-l: 15px; --t-xl: 17px; --t-display: 26px;
+  --focus: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
+  --shadow-card: 0 1px 3px rgba(0,0,0,.06);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: var(--t-l); line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: 5px; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 28px 16px 60px; }
+h1 { font-size: var(--t-display); font-weight: 700; letter-spacing: -.02em; margin: 0 0 6px; }
+.intro { color: var(--fg-2); margin: 0 0 18px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.tools input { flex: 1 1 220px; min-height: 38px; padding: 8px 12px; font: inherit; font-size: var(--t-base);
+  border: 1px solid var(--line-strong); border-radius: var(--r); background: var(--bg); color: var(--fg); }
+.tools input:hover { border-color: var(--fg-3); }
+.tools input:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus); }
+.count { font-size: var(--t-m); color: var(--fg-2); margin: 4px 0 0; }
+
+.month { font-size: var(--t-xl); font-weight: 600; margin: 26px 0 10px; padding-top: 18px; border-top: 1px solid var(--line); }
+.month:first-child { border-top: 0; padding-top: 0; margin-top: 16px; }
+.list { display: flex; flex-direction: column; gap: 12px; }
+
+.card { display: grid; grid-template-columns: 200px minmax(0, 1fr); border: 1px solid var(--line-strong); border-radius: var(--r-l);
+  background: var(--bg); box-shadow: var(--shadow-card); overflow: hidden; }
+.pic { position: relative; min-height: 100px; overflow: hidden; background: var(--group); border-right: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center; }
+.pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; } /* fills the card height, cropped */
+.pic.brand { background: #D22283; border-right: 0; }  /* no course image: white SaIL diamond on SaIL Magenta */
+.pic.brand img { position: static; width: 96px; height: 96px; object-fit: contain; }
+.body { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.when { font-size: var(--t-m); font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.card h3 { font-size: var(--t-l); font-weight: 600; margin: 0; line-height: 1.3; }
+.sum { font-size: var(--t-m); color: var(--fg-2); margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.foot { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; margin-top: 6px; }
+.meta { font-size: var(--t-s); color: var(--fg-2); display: flex; gap: 4px 14px; flex-wrap: wrap; align-items: center; flex: 1; min-width: 0; }
+.badge { font-size: var(--t-xs); font-weight: 600; padding: 2px 8px; border-radius: var(--r-pill); }
+.badge.full { background: var(--danger-bg); color: var(--danger); }
+.book { display: inline-flex; align-items: center; height: 32px; padding: 0 16px; border-radius: var(--r-pill); background: var(--accent);
+  color: #fff; font-size: var(--t-m); font-weight: 500; text-decoration: none; white-space: nowrap; }
+.book:hover { filter: brightness(.95); }
+.book.quiet { background: var(--group); color: var(--fg); }
+@media (max-width: 600px) {
+  .card { grid-template-columns: 1fr; }
+  .pic { display: none; }
+}
+
+.note { background: var(--group); color: var(--fg-2); border-radius: var(--r-l); padding: 14px; font-size: var(--t-m); margin-top: 16px; }
+.note.err { background: var(--warn-bg); color: var(--warn); }
+.updated { font-size: var(--t-s); color: var(--fg-3); margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Upcoming courses</h1>
+  <p class="intro">Simulation and Interactive Learning (SaIL) courses for GSTT staff. Choose a course to book on Eventbrite.</p>
+
+  <div class="tools">
+    <input id="q" type="search" placeholder="Search courses" aria-label="Search courses">
+  </div>
+  <p class="count" id="count" aria-live="polite"></p>
+
+  <div id="out"><p class="note">Loading courses...</p></div>
+  <p class="updated" id="updated"></p>
+</div>
+
+<script>
+// The list comes from the board's server. The link's code is after # in the
+// address (so it's never in a server log or sent on to another site); it
+// goes to the server in a header, not the URL.
+const API = window.SUPABASE_URL + "/functions/v1/api/public/courses/upcoming";
+const LINK = decodeURIComponent(location.hash.slice(1));
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// Eventbrite gives UK local times without a zone: read them as wall clock times and show them unchanged.
+const at = s => { const [d, t] = s.split("T"); const [y, m, dd] = d.split("-"); const [h, mi] = t.split(":"); return new Date(y, m - 1, dd, h, mi); };
+const day = d => d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+const time = d => d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+const month = d => d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+const money = n => "£" + (Number.isInteger(n) ? n : n.toFixed(2));
+
+function when(c) {
+  const s = at(c.start), e = at(c.end);
+  return s.toDateString() === e.toDateString()
+    ? `${day(s)}, ${time(s)} to ${time(e)}`
+    : `${day(s)} to ${day(e)}, ${time(s)} to ${time(e)}`;
+}
+function price(c) {
+  if (!c.price_max) return "Free";
+  if (!c.price_min) return `Free or ${money(c.price_max)}`;
+  return c.price_min === c.price_max ? money(c.price_min) : `${money(c.price_min)} to ${money(c.price_max)}`;
+}
+const place = c => c.online ? "Online" : (c.venue || "Venue to be confirmed");
+
+let courses = [];
+
+function card(c) {
+  const img = `<img src="${esc(c.image || "sail-diamond-white.png")}" alt="" loading="lazy">`;
+  return `<article class="card">
+    <div class="pic${c.image ? "" : " brand"}">${img}</div>
+    <div class="body">
+      <div class="when">${esc(when(c))}</div>
+      <h3>${esc(c.name)}</h3>
+      ${c.summary ? `<p class="sum">${esc(c.summary)}</p>` : ""}
+      <div class="foot">
+        <div class="meta"><span>${esc(place(c))}</span><span>${esc(price(c))}</span>${c.sold_out ? `<span class="badge full">Full</span>` : ""}</div>
+        <a class="book${c.sold_out ? " quiet" : ""}" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${c.sold_out ? "View" : "Book"}<span class="sr"> ${esc(c.name)} (opens Eventbrite)</span></a>
+      </div>
+    </div>
+  </article>`;
+}
+
+function render() {
+  const q = $("q").value.trim().toLowerCase();
+  const shown = courses.filter(c => !q || (c.name + " " + c.summary + " " + c.venue).toLowerCase().includes(q));
+  $("count").textContent = `${shown.length} of ${courses.length} course${courses.length === 1 ? "" : "s"}`;
+  if (!shown.length) { $("out").innerHTML = `<p class="note">No courses match. Try a different search.</p>`; return; }
+  let html = "", cur = "";
+  for (const c of shown) {
+    const m = month(at(c.start));
+    if (m !== cur) { if (cur) html += "</div>"; html += `<h2 class="month">${m}</h2><div class="list">`; cur = m; }
+    html += card(c);
+  }
+  $("out").innerHTML = html + "</div>";
+}
+
+fetch(API, { headers: { "X-Link": LINK, apikey: window.SUPABASE_KEY }, referrerPolicy: "no-referrer" })
+  .then(r => r.json().catch(() => ({})).then(d => { if (!r.ok) throw new Error(d.error || "HTTP " + r.status); return d; }))
+  .then(d => {
+    courses = d.courses;
+    if (!courses.length) { $("count").textContent = ""; $("out").innerHTML = `<p class="note">No upcoming courses at the moment. Please check back soon.</p>`; return; }
+    render();
+    $("updated").textContent = "List updated " + new Date(d.updated).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+  })
+  .catch(e => { $("count").textContent = ""; $("out").innerHTML = `<p class="note err">${esc(e.message)}</p>`; });
+$("q").addEventListener("input", render);
+</script>
+</body>
+</html>

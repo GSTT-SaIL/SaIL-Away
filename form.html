@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Public page: keep it out of search results. Reached as /f/<code>, so
+     every asset path is absolute. -->
+<meta name="robots" content="noindex, nofollow">
+<title>Form</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/form.css">
+<script src="js/config.js"></script>
+</head>
+<!-- .pub reveals the chrome without .authed (css/base.css). No sign-in:
+     it reads and submits through pb_hooks/forms.pb.js's two public routes
+     only. ?preview=1 (the board's Preview tab) shows it without sending. -->
+<body class="pub fpage">
+
+<div class="app">
+  <main class="fwrap">
+    <div class="fcard" id="fcard"><p class="fstatus">Loading&hellip;</p></div>
+  </main>
+</div>
+
+<script type="module" src="js/form.js"></script>
+</body>
+</html>

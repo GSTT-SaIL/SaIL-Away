@@ -1,0 +1,31 @@
+/* Courses view (#pane-courses) - js/views/courses.js.
+   Groups -> courses -> sessions. The look - group headers, item rows (a
+   course), sub-item rows (its sessions) in a tree, edit-mode fields, add
+   and delete buttons - is the shared grouped list (.glist in base.css),
+   the same as Forms; change it there, not here. This file has only what's
+   particular to Courses: its columns, and a few edit-mode extras. */
+
+#pane-courses{font-size:14px;letter-spacing:-.01em;color:var(--fg)}
+/* View mode: the row details scroll under the locked titles when narrow
+   (base.css .lined), so the list needs little room; edit mode's field grid
+   needs the full width. */
+#pane-courses .list{min-width:620px;padding:6px 20px 32px}
+body.editing #pane-courses .list{min-width:1080px}
+
+#pane-courses .gtitle{width:220px;flex:none}
+#pane-courses .gcol{width:112px;flex:none}
+
+/* Course rows (.row.item): name / sessions count / department / lead / email. */
+#pane-courses .row.course{grid-template-columns:minmax(260px,1.7fr) 110px 170px 190px 260px}
+/* Session rows (.row.sub): name / room / date / time. */
+#pane-courses .row.session{grid-template-columns:minmax(260px,1.7fr) 190px 110px 130px}
+
+/* ---------- edit mode ---------- */
+/* A typed date outside the financial year: not saved, put back on blur. */
+#pane-courses .ed.bad,#pane-courses .ed.bad:focus{border-color:var(--warn);box-shadow:0 0 0 3px var(--warn-bg)}
+#pane-courses .pair{display:flex;gap:5px}
+#pane-courses .pair .ed{width:50%}
+/* Fields need more room than the plain text they replace, so edit mode
+   trades some of the flexible name column for wider fixed columns. */
+body.editing #pane-courses .row.course{grid-template-columns:minmax(220px,1.4fr) 160px 200px 180px 250px}
+body.editing #pane-courses .row.session{grid-template-columns:minmax(220px,1.4fr) 190px 150px 200px}

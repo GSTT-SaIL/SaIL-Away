@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Public page: keep it out of search results. -->
+<meta name="robots" content="noindex, nofollow">
+<title>Room availability</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/views/schedule.css">
+<!-- Same one-line config as the board, so PocketBase's URL is edited in a
+     single place when deploying (see README). -->
+<script src="js/config.js"></script>
+</head>
+<!-- .pub reveals the chrome without .authed, which stays reserved for a real
+     signed-in session (see css/base.css). This page never signs anyone in:
+     it reads /api/availability, which is anonymous and returns room/date/
+     start/end only - no course, lead or attendee data exists here to leak. -->
+<body class="pub">
+
+<div class="banner"><img src="assets/sail-centre-logo.png" alt="SaIL Centre" id="brand-logo">
+  <div class="sitemark" id="brand-mark" role="img" hidden><span class="nm"></span><span class="sub"></span></div></div>
+
+<div class="app">
+
+<div class="bar">
+  <span class="pubtitle">Room availability</span>
+  <span class="spacer"></span>
+  <span class="label tnum" id="week-label"></span>
+  <button class="tbtn" id="this-week">This week</button>
+  <button class="step" id="prev-week" aria-label="Previous week">
+    <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M6 1L1 6l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <button class="step" id="next-week" aria-label="Next week">
+    <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+
+<div class="pane on" id="pane-availability">
+  <div class="ttwrap"><div class="tt" id="av"></div></div>
+  <div class="keybar">
+    <span class="keylabel">Key</span>
+    <span class="legend"><span class="avkey">Not Available</span></span>
+    <span class="spacer"></span>
+    <span class="keynote">Room use only. Course details are not shown on this view.</span>
+  </div>
+</div>
+
+</div>
+
+<script type="module">
+/* Standalone: no sign-in. It reads the "api" Edge Function's /availability
+   (room/date/start/end only) and draws it with the same grid painter as the
+   board's Availability view (js/core/grid.js), in its anonymous mode. */
+import { paintGrid, weekLabel } from "./js/core/grid.js";
+import { makeStrip } from "./js/core/strip.js";
+import { addDays, mondayOf, TODAY, esc, toISO } from "./js/core/util.js";
+
+const API = window.SUPABASE_URL + "/functions/v1/api";
+let ROOMS = [], BUSY = [];
+
+// One strip of days, like the board's (core/strip.js): drag or scroll
+// freely, or the arrows / This week to glide to a whole week and lock
+// there. No year selector here: a window from 8 weeks back to the end of
+// next financial year (31 March), whole weeks (the user's call,
+// 2026-10-09). The server sends only that window too
+// (pb_hooks/availability.pb.js) - keep the two in step.
+const THIS_WEEK = 8 * 7;
+const FY_NOW = TODAY.getMonth() >= 3 ? TODAY.getFullYear() : TODAY.getFullYear() - 1;
+const LAST_DAY = new Date(FY_NOW + 2, 2, 31);                 // 31 March, end of next year
+const DAYS = Array.from({ length: Math.round((addDays(mondayOf(LAST_DAY), 7) - addDays(mondayOf(TODAY), -THIS_WEEK)) / 86400000) },
+  (_, i) => addDays(mondayOf(TODAY), i - THIS_WEEK));
+const last = DAYS.length - 7;
+const $ = id => document.getElementById(id);
+const strip = makeStrip({
+  wrap: $("av").parentElement, axis: "x",
+  unit: () => $("av").querySelector(".h")?.getBoundingClientRect().width || 0,
+  onMove(i){
+    i = Math.min(Math.max(i, 0), DAYS.length - 1);
+    $("week-label").textContent = weekLabel(DAYS[i], DAYS[Math.min(i + 6, DAYS.length - 1)]);
+    $("prev-week").disabled = i <= 0;
+    $("next-week").disabled = i >= last;
+  },
+});
+
+function render(){
+  // Days after 31 March in the last week are greyed, as on the board.
+  paintGrid($("av"), { days: DAYS, rooms: ROOMS, bookings: BUSY, anon: true, outside: iso => iso > toISO(LAST_DAY) });
+  strip.go(THIS_WEEK, { smooth: false });
+}
+
+// The banner: the logo image, or for a site without one its wordmark - the
+// same look as the board's (js/core/site.js paintBrand; repeated here as
+// this page doesn't load the board's code).
+function brand(s){
+  if(!s || s.logo) return;
+  const mark = $("brand-mark");
+  $("brand-logo").hidden = true;
+  mark.hidden = false;
+  mark.style.setProperty("--site", s.colour || "#0e7c86");
+  mark.querySelector(".nm").textContent = s.name || "";
+  const sub = mark.querySelector(".sub");
+  sub.textContent = s.full_name || "";
+  sub.hidden = !s.full_name;
+  mark.setAttribute("aria-label", s.full_name ? `${s.name} - ${s.full_name}` : (s.name || ""));
+  document.title = (s.name ? s.name + " - " : "") + "Room availability";
+}
+
+// Arrows: a locked week steps a week; from a free position, forward to the
+// next Monday or back to this week's.
+function step(dir){
+  const i = strip.index, monday = i - ((DAYS[i].getDay() + 6) % 7);
+  const to = strip.locked ? i + 7 * dir : dir > 0 ? monday + 7 : (i === monday ? i - 7 : monday);
+  strip.go(Math.min(Math.max(to, 0), last));
+}
+$("prev-week").addEventListener("click", () => step(-1));
+$("next-week").addEventListener("click", () => step(1));
+$("this-week").addEventListener("click", () => strip.go(THIS_WEEK));
+
+// The site comes from the link (?site=<code>); without one, the server
+// shows the first site - links shared before sites existed still work.
+const siteCode = new URLSearchParams(location.search).get("site") || "";
+fetch(API+"/availability" + (siteCode ? "?site=" + encodeURIComponent(siteCode) : ""), { headers: { apikey: window.SUPABASE_KEY } })
+  .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+  .then(d=>{ ROOMS = d.rooms||[]; BUSY = d.busy||[]; brand(d.site); render(); })
+  .catch(err=>{
+    document.getElementById("av").innerHTML =
+      `<div class="empty">Could not load room availability (${esc(err.message)}).</div>`;
+  });
+</script>
+</body>
+</html>

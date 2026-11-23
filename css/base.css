@@ -1,0 +1,477 @@
+/* Base: the design tokens, page chrome (banner, top bar, toolbar), the
+   shared controls (buttons, icon buttons, fields, chevron, empty state),
+   the grouped-list boards and the dialogs. docs/DESIGN.md is the guide to
+   all of it - read it before changing the UI. Loaded by every page. Each view's own styles live in css/views/
+   and are scoped to that view's pane, so they can't leak into other views.
+
+   The look follows the Invoicer (sail-quote-calculator.html): Apple-like,
+   system fonts, soft greys, one neutral blue accent.
+
+   BRANDING lives in the banner only: --banner below plus the logo
+   (assets/sail-centre-logo.png, referenced in index.html, availability.html
+   and form.html; invoice/quote PDFs reuse it too). Everything else is deliberately unbranded so other
+   departments can run their own copy by changing just those. */
+
+:root{
+  /* ---- department branding: the top banner only ---- */
+  --banner:#fff;  /* SaIL: white, with the colour logo (2026-10-07; was a magenta gradient) */
+
+  /* ---- neutral UI palette (not department-specific) ---- */
+  --fg:#1D1D1F;          /* text */
+  --fg-2:#6E6E73;        /* secondary text */
+  --fg-3:#86868B;        /* tertiary text: hints, counts, axis labels */
+  --line:#E5E5EA;        /* hairlines */
+  --line-strong:#D2D2D7; /* header underlines, stronger dividers */
+  --group:#F5F5F7;       /* grey fills: cards, fields, plain buttons */
+  --row-hover:#EDEDF0;   /* hover on grey fills */
+  --bg:#FFFFFF;
+  --accent:#0071E3;      /* links, focus rings, primary buttons, today */
+  --today:color-mix(in srgb, var(--accent) 3%, #fff);  /* "today" column/cell tint */
+  --danger:#D70015; --danger-bg:#FFEBEE;  /* deleting, destructive confirms */
+  --warn:#B25000; --warn-bg:#FFF4E5;      /* warnings: problems, unsaved, going back */
+  --ok:#248A3D;
+  --edit:#FF3B30;        /* edit mode: Edit button and the top bar's red cue */
+  /* Invoice progress steps (quote -> invoice -> paid) - status colours,
+     not branding. */
+  --step-quote:#0071E3; --step-invoice:#E8710A; --step-paid:#248A3D;
+
+  /* ---- shape, type and depth (docs/DESIGN.md) ---- */
+  --r-s:6px;  --r:8px;  --r-l:12px;  --r-xl:16px;  --r-pill:999px;
+  --t-xs:11px; --t-s:12px; --t-m:13px; --t-base:14px; --t-l:15px; --t-xl:17px; --t-xxl:22px; --t-display:26px;
+  --field-h:34px; --field-h-compact:26px; --btn-h:32px;
+  --focus:0 0 0 3px color-mix(in srgb,var(--accent) 28%,transparent);   /* fields */
+  --shadow-card:0 1px 3px rgba(0,0,0,.06);
+  --shadow-raised:0 1px 2px rgba(33,43,50,.16),0 3px 8px rgba(33,43,50,.22);  /* cards on white, no outline: bold but tight (2026-10-07) */
+  --shadow-pop:0 20px 60px rgba(0,0,0,.24),0 0 0 .5px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box}
+/* The hidden attribute always wins over a component's own display value. */
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI Variable Text","Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:13px;color:var(--fg);background:var(--bg);
+  display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:5px}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* No data (or even the app chrome) renders until sign-in succeeds -
+   boot() adds .authed to <body> only after a valid session is confirmed
+   and the board data has loaded. */
+body:not(.authed) .banner, body:not(.authed) .app{display:none}
+
+/* ---------- banner ---------- */
+.banner{flex:none;height:132px;display:flex;align-items:center;padding:0 28px 18px;
+  background:var(--banner)}
+.banner img{width:170px;height:74px;display:block}
+/* The financial-year picker (js/core/period.js): the same picker as the
+   view picker (js/core/picker.js, .viewpick below), on the banner. Only the
+   menu is lifted above the board (.banner .viewmenu below) - the banner
+   itself must stay under it, or its white bottom strip covers the board's
+   rounded top while a menu is open (the user hit it, 2026-10-08). The
+   banner has no z-index, so it makes no stacking layer of its own and the
+   menu's z-index counts against the board's. */
+.banner{position:relative}
+.banner .fy{margin-left:auto;display:flex;align-items:center;gap:12px;color:var(--fg)}
+/* "Site" / "Financial year": not shown - the dropdowns are obvious
+   enough (the user's call, 2026-10-09) - but kept for screen readers,
+   which read them as the dropdowns' names. */
+.banner .fylabel{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* A site without its own logo: a wordmark in the logo's place (the user's
+   pick, 2026-10-07) - its name large and bold in the site's colour, its
+   full name under it in grey. Same height as the logo; a long name widens
+   it rather than shrinking. */
+.sitemark{min-width:170px;max-width:420px;height:74px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
+.sitemark .nm{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--site,#0e7c86);
+  max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sitemark .sub{font-size:11px;font-weight:600;color:var(--fg-2);line-height:1.2;margin-top:5px;letter-spacing:.01em;
+  max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* A site's label in "All" (core/site.js): a small pill in the site's
+   colour (--site), white text - on Courses' group headers and the
+   Timetable's room names. */
+.sitetag{display:inline-flex;align-items:center;flex:none;height:18px;padding:0 8px;border-radius:var(--r-pill);
+  background:var(--site,#334155);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.02em;line-height:1}
+/* The site selector, left of the year (hidden for one-site accounts). */
+.banner .fygroup{display:flex;align-items:center;gap:12px;margin-right:12px}
+.banner .viewpick{position:relative}
+.banner .viewbtn{min-width:120px}
+.banner .viewmenu{left:auto;right:0;z-index:30}
+/* Hiding the banner (the user's design, 2026-10-09): a small tab on the
+   banner's bottom edge, only while the pointer is over the banner. It
+   sits on the board's top edge, white like the board, as if pulled from
+   it (z-index 2 puts it over the board's hairline and upward shadow -
+   the banner makes no stacking layer of its own, see .banner above).
+   Hidden, the banner shrinks to a 12px sliver in the site's colour
+   (--site-accent, set by the shell; 6px at first, doubled 2026-10-09) -
+   30px, of which the board's -18px top covers the rest - and the tab hangs from it in that colour.
+   Remembered per person (core/prefs.js "bannerHidden"). Opacity only, not
+   visibility: an invisible tab must still be hoverable to appear. */
+.banner{transition:height .22s ease,background-color .22s ease}
+.banner>*:not(.bantab){transition:opacity .15s ease}
+.bantab{position:absolute;left:50%;bottom:17px;z-index:2;width:52px;height:19px;transform:translateX(-50%);
+  display:flex;align-items:center;justify-content:center;border-radius:10px 10px 0 0;
+  background:var(--bg);color:var(--fg-2);box-shadow:0 -1px 6px rgba(33,43,50,.14);
+  clip-path:inset(-10px -10px 0 -10px);opacity:0;transition:opacity .15s ease}
+.bantab svg{width:12px;height:12px}
+.bantab:hover{color:var(--fg)}
+.banner:hover .bantab,.bantab:focus-visible{opacity:1}
+.bantab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+body.banner-hidden .banner{height:30px;background:var(--site-accent,var(--accent))}
+body.banner-hidden .banner>*:not(.bantab){opacity:0;visibility:hidden}
+body.banner-hidden .bantab{bottom:auto;top:10px;height:18px;   /* 2px into the sliver: no seam */
+  border-radius:0 0 10px 10px;
+  background:var(--site-accent,var(--accent));color:#fff;box-shadow:0 2px 6px rgba(33,43,50,.18);
+  clip-path:inset(0 -10px -10px -10px)}
+body.banner-hidden .bantab svg{transform:rotate(180deg)}
+@media (prefers-reduced-motion:reduce){ .banner,.banner>*,.bantab{transition:none} }
+
+.app{flex:1;min-height:0;display:flex;flex-direction:column;position:relative;z-index:1;
+  background:var(--bg);margin-top:-18px;border-radius:18px 18px 0 0;overflow:hidden;
+  /* The board lifts off the white banner: a hairline round its rounded
+     top plus a soft shadow cast upward onto the banner. */
+  box-shadow:0 0 0 1px var(--line),0 -2px 8px rgba(33,43,50,.07)}
+
+/* ---------- top bar ---------- */
+/* z-index lifts the bar (and the view menu that drops out of it) above the
+   panes' sticky Timetable headers. */
+.bar{flex:none;height:52px;display:flex;align-items:center;gap:16px;padding:0 20px;
+  position:relative;z-index:20;border-bottom:1px solid var(--line);background:rgba(255,255,255,.8)}
+/* No backdrop-filter: nothing scrolls behind the bar, so the blur showed
+   nothing - and the blurred layer made the board's rounded top corners
+   repaint about a second late when the banner changed colour (hiding it,
+   2026-10-09). */
+.bar>*{position:relative;z-index:1}
+/* Narrow screens (2026-10-07: "Collapse all" wrapped and Edit was pushed
+   off the end): the filter gives way down to 120px, the count shrinks and
+   trims first, buttons never wrap or shrink, and the gaps tighten. */
+@media (max-width:900px){ .bar{gap:10px;padding:0 14px} }
+body.editing .bar{background:color-mix(in srgb,var(--edit) 9%,transparent);
+  border-bottom-color:color-mix(in srgb,var(--edit) 40%,transparent)}
+body.editing .bar::after{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:linear-gradient(90deg,transparent 0,color-mix(in srgb,var(--edit) 22%,transparent) 50%,transparent 100%);
+  background-size:45% 100%;background-repeat:no-repeat;
+  animation:sweep 4.5s cubic-bezier(.45,0,.55,1) infinite;
+}
+@keyframes sweep{
+  0%{background-position:-45% 0}
+  100%{background-position:145% 0}
+}
+
+/* View picker - a button plus a custom listbox (see the markup in
+   index.html for why not a native <select>). Closed it's a grey pill like
+   the Invoicer's fields; open it's a macOS-style menu: white rounded
+   panel, soft shadow, grey highlight, accent tick on the current view. */
+.viewpick{flex:none}
+.viewbtn{height:30px;min-width:160px;display:inline-flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:0 10px 0 12px;border:1px solid var(--line-strong);border-radius:var(--r);background:var(--bg);
+  color:var(--fg);font-size:var(--t-m);font-weight:600;letter-spacing:-.01em}
+.viewbtn:hover{border-color:var(--fg-3)}
+.viewbtn:focus-visible{outline:none;border-color:var(--accent);box-shadow:var(--focus)}
+.viewchev{width:12px;height:12px;flex:none;color:var(--fg-2);transition:transform .15s ease}
+.viewbtn[aria-expanded="true"] .viewchev{transform:rotate(180deg)}
+
+.viewmenu{position:absolute;top:calc(100% + 6px);left:0;min-width:100%;width:max-content;
+  margin:0;padding:5px;list-style:none;background:var(--bg);border-radius:var(--r-l);
+  box-shadow:0 12px 32px rgba(0,0,0,.14),0 2px 6px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.1);
+  outline:none;animation:viewmenu-in .12s ease-out}
+@keyframes viewmenu-in{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.viewmenu [role=option]{position:relative;height:32px;display:flex;align-items:center;
+  padding:0 14px 0 30px;border-radius:var(--r-s);font-size:var(--t-m);color:var(--fg);cursor:pointer;white-space:nowrap}
+.viewmenu [role=option].active{background:var(--row-hover)}
+.viewmenu [aria-selected="true"]{font-weight:600}
+/* The tick on the current view. */
+.viewmenu [aria-selected="true"]::before{content:"";position:absolute;left:11px;top:50%;width:9px;height:5px;
+  border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:translateY(-70%) rotate(-45deg)}
+
+/* Tick-list dropdown (js/core/tickpick.js, the user's design 2026-10-09):
+   the picker's button and menu, holding tickboxes. Something hidden turns
+   the button the accent colour with a dot, so it's never a silent filter. */
+.tickpick{position:relative;flex:none}
+.tickpick .viewmenu{left:auto;right:0;z-index:30;min-width:220px;max-height:min(420px,70vh);overflow-y:auto}
+.tickrow{height:32px;display:flex;align-items:center;gap:9px;padding:0 14px 0 10px;border-radius:var(--r-s);
+  font-size:var(--t-m);color:var(--fg);cursor:pointer;white-space:nowrap}
+.tickrow:hover{background:var(--row-hover)}
+.tickrow input{width:15px;height:15px;margin:0;flex:none;accent-color:var(--accent);cursor:pointer}
+.tickrow .ticklabel{flex:1}
+.tickall{font-weight:600;margin-bottom:5px;position:relative}
+.tickall::after{content:"";position:absolute;left:6px;right:6px;bottom:-3px;border-bottom:1px solid var(--line)}
+.tickempty{padding:8px 12px;font-size:var(--t-m);color:var(--fg-3)}
+.viewbtn.filtered{border-color:var(--accent);color:var(--accent)}
+.viewbtn.filtered .viewlabel::before{content:"";display:inline-block;width:6px;height:6px;margin-right:7px;
+  border-radius:50%;background:var(--accent);vertical-align:middle;position:relative;top:-1px}
+.viewbtn.filtered .viewchev{color:var(--accent)}
+/* In the week toolbar, just left of Today; only on views that ask for it
+   (toolbar.rowFilter). */
+#rowpick{display:none}
+body.row-filter #rowpick{display:block}
+
+.bar .count{font-size:12px;color:var(--fg-3);white-space:nowrap;flex:0 1 auto;min-width:0;
+  overflow:hidden;text-overflow:ellipsis}
+.filter{height:30px;width:240px;flex:0 1 240px;min-width:120px;margin-left:auto;border:1px solid var(--line-strong);border-radius:var(--r);background:var(--bg);
+  padding:0 11px;font-family:inherit;font-size:var(--t-m);color:var(--fg);outline:none;
+  -webkit-appearance:none;appearance:none}
+.filter::placeholder{color:var(--fg-3)}
+.filter:hover{border-color:var(--fg-3)}
+.filter:focus{border-color:var(--accent);box-shadow:var(--focus)}
+.filter::-webkit-search-cancel-button{-webkit-appearance:none;height:13px;width:13px;cursor:pointer;
+  background:var(--fg-3);mask:radial-gradient(circle,#000 99%,transparent 100%);border-radius:50%}
+/* Views whose toolbar has no filter (toolbar.filter: false - e.g. Tickets);
+   hiding #q would drop the margin-left:auto that right-aligns the rest of
+   the bar, so the count picks it up instead. */
+body.no-filter #q{display:none}
+body.no-filter .bar .count{margin-left:auto}
+
+.editbtn{height:28px;padding:0 16px;border-radius:var(--r-pill);background:var(--edit);color:#fff;
+  font-size:var(--t-m);font-weight:600;white-space:nowrap;flex:none}
+.editbtn:hover{filter:brightness(1.07)}
+.editbtn.on{background:var(--fg)}
+
+/* ---------- toolbar (under the bar) + shared small buttons ---------- */
+.toolbar{flex:none;height:42px;display:flex;align-items:center;gap:10px;padding:0 20px;
+  border-bottom:1px solid var(--line);background:var(--bg)}
+.toolbar .label{font-size:13px;font-weight:600;letter-spacing:-.01em}
+.toolbar .spacer{margin-left:auto}
+/* Quiet text buttons in bars and toolbars (Expand all, Log out, Today). */
+.tbtn{height:28px;padding:0 12px;border-radius:var(--r-pill);font-size:var(--t-s);color:var(--fg-2);
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex:none}
+.tbtn:hover{background:var(--group);color:var(--fg)}
+.step{width:32px;height:28px;border-radius:var(--r-pill);display:inline-flex;align-items:center;justify-content:center;color:var(--fg-2)}
+.step:hover{background:var(--group);color:var(--fg)}
+/* Steppers and Today stop at the ends of the financial year on show. */
+.step:disabled,.tbtn:disabled{opacity:.35;cursor:default;background:none;color:var(--fg-2)}
+.keynote{font-size:12px;color:var(--fg-3)}
+
+/* ---------- spinner ----------
+   For anything fetched live that takes a moment (Eventbrite events and
+   attendees, 2026-10-07): a ring in the hairline grey with an accent arc.
+   .spinner is 18px, .spinner.lg 28px. .loading lays a spinner beside its
+   message. */
+.spinner{display:inline-block;flex:none;width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--line-strong);border-top-color:var(--accent);animation:spin .8s linear infinite}
+.spinner.lg{width:28px;height:28px;border-width:3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading{display:flex;align-items:center;gap:10px;color:var(--fg-2)}
+
+/* ---------- panes ---------- */
+.pane{flex:1;min-height:0;overflow:auto;display:none}
+.pane.on{display:block}
+
+/* ---------- shared bits ---------- */
+.chev{width:11px;height:11px;flex:none;color:var(--fg-3);transition:transform .12s ease}
+[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+
+/* ---------- grouped lists ("data boards": Courses, Invoices) ----------
+   One look for every board of groups -> rows, so they can't drift apart
+   (the user's call, 2026-10-03). A board's .list also has class="glist";
+   its view css adds only its own rows and edit fields.
+   - Header: filled with the group's tint (--gtint/--gink, set per group in
+     the markup), a little deeper on hover. The name outranks the rows under
+     it: 15px bold in the group's ink.
+   - Chevron 14px (as on course rows), centred 22px in (15px padding + 7px);
+     the name starts 44px in.
+   - The rows' card is indented 22px so it reads as belonging to the group,
+     with the same 12px above it as below it to the next header. */
+.glist .gsec+.gsec{margin-top:6px}
+.glist .grouphead{display:flex;align-items:center;height:38px;margin-top:12px;cursor:pointer;
+  border-radius:var(--r);color:var(--fg);background:var(--gtint,var(--group))}
+.glist .grouphead:hover{background:color-mix(in srgb,var(--gink,var(--fg)) 9%,var(--gtint,var(--group)))}
+.glist .grouphead .gname{display:flex;align-items:center;gap:8px;padding-left:15px;flex:1;min-width:0;
+  font-size:15px;font-weight:700;letter-spacing:-.015em;color:var(--gink,var(--fg))}
+.glist .grouphead .chev{width:14px;height:14px;margin-right:7px;color:var(--fg-2)}
+.glist .gcount{font-weight:400;font-size:var(--t-s);color:var(--fg-2)}
+.glist .gcard{background:var(--group);border-radius:var(--r-l);overflow:hidden;margin-top:12px;margin-left:22px}
+.glist .delg{margin-left:auto;margin-right:8px}
+.glist .grouphead .ed{font-weight:600}
+
+/* ---- items and sub-items: group -> item -> sub-item ----
+   Courses (course -> sessions) and Forms (form set -> forms) share this:
+   markup `.row.item` / `.row.sub` (plus the board's own class for its
+   columns: a board sets only grid-template-columns, in its view css).
+   - Item rows: grey, 38px, a divider between items (not under every row).
+     The row opens its pop-up when clicked anywhere; only the chevron
+     button (.exp, at the start of the .name cell) expands it. The chevron
+     sits midway between the card's edge and the title (22px each side).
+   - Sub-items (the user's call, 2026-10-07, picked in a test rig over a
+     tree and other card colours): an open item's sub-items sit on a white
+     band (.subs) inside the item card, 22px in and 12px above and below,
+     in a white card with a firm border (.subcard). Their rows are item rows
+     - 38px, 500 weight, dividers between - with the name 44px in, where an
+     item's title starts. */
+.glist .row{display:grid;align-items:center;position:relative}
+.glist .row>*{padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.glist .row>*:first-child{padding-left:16px}
+.glist .row .muted{color:var(--fg-2)}
+.glist .row a{color:var(--fg-2)}
+.glist .row a:hover{color:var(--accent);text-decoration:none}
+.glist .row[tabindex]:focus{outline:none}
+.glist .row[tabindex]:focus-visible{box-shadow:inset 0 0 0 2px var(--accent)}
+
+.glist .row.item{height:38px;cursor:pointer}
+.glist .gcard>.row.item~.row.item,.glist .gcard>.additem{border-top:1px solid var(--line)}
+.glist .row.item .name{display:flex;align-items:center;gap:8px;font-weight:500;letter-spacing:-.015em}
+.glist .row.item:hover{background:var(--row-hover)}
+.glist .ititle{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Counts and labels, as white pills on the grey card. */
+.glist .tag{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;
+  font-size:var(--t-s);font-weight:500;color:var(--fg-2);background:var(--bg);
+  padding:1px 9px;border-radius:var(--r-pill);letter-spacing:0}
+.glist .exp{flex:none;width:26px;height:26px;margin-left:-7px;margin-right:1px;border-radius:var(--r-pill);
+  display:inline-flex;align-items:center;justify-content:center}
+.glist .exp .chev{width:14px;height:14px;color:var(--fg-2)}
+.glist .exp:hover{background:var(--bg)}
+.glist .exp:hover .chev{color:var(--fg)}
+.glist .exp:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+.glist .subs{background:var(--bg);border-top:1px solid var(--line);padding:12px 0 12px 22px}
+.glist .subcard{background:var(--bg);border:1px solid var(--line-strong);border-radius:var(--r-l);overflow:hidden}
+.glist .row.sub{height:38px;cursor:pointer}
+.glist .subcard>.row.sub~.row.sub,.glist .subcard>.addsub{border-top:1px solid var(--line)}
+.glist .row.sub .name{padding-left:44px;font-weight:500;letter-spacing:-.015em}
+.glist .row.sub:hover{background:var(--group)}
+
+/* ---- row details (view mode): js/core/rowdetails.js ----
+   The user's design (2026-10-07, picked in a test rig - docs/DESIGN.md
+   "Row details"). A .lined row is its title (.name), locked on the left
+   with a solid background in the row's colour, then .rdata: plain-text
+   cells (.rd) in columns sized to their widest value, split by short
+   centred ticks, roomy, all in soft grey (counts, .rd.calc, a shade
+   lighter, and first). When the details don't fit they scroll sideways
+   under the title - rowdetails.js keeps every row together and sets the
+   edge shadows (.sh-left from the title's edge at --tl, .sh-right from
+   the row's end). The title's min-width is where it stops giving way;
+   sub-items sit 23px further in, so theirs is 23px less and both end at
+   the same point. */
+.glist .lined{display:flex;align-items:stretch;position:relative}
+.glist .lined:focus-visible{box-shadow:none;outline:2px solid var(--accent);outline-offset:-2px}
+.glist .lined>.name{flex:1 1 0;min-width:320px;position:relative;z-index:1;display:flex;align-items:center;
+  background:var(--group)}
+.glist .row.sub.lined>.name{min-width:297px;background:var(--bg)}
+.glist .row.item.lined:hover>.name{background:var(--row-hover)}
+.glist .row.sub.lined:hover>.name{background:var(--group)}
+.glist .lined>.rdata{flex:0 1 auto;min-width:0;display:flex;align-items:stretch;padding:0;
+  overflow-x:auto;overflow-y:hidden;scrollbar-width:none;text-overflow:clip}
+.glist .rdata::-webkit-scrollbar{display:none}
+.glist .rd{flex:none;position:relative;display:flex;align-items:center;padding:0 20px;
+  font-size:var(--t-m);font-weight:400;color:var(--fg-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.glist .rd::before{content:"";position:absolute;left:0;top:50%;height:14px;width:1px;
+  transform:translateY(-50%);background:var(--line-strong)}
+.glist .rd.blank::before{display:none}
+.glist .rd.calc{color:var(--fg-3)}
+.glist .rd.ok{color:var(--ok)}
+.glist .rd a{color:inherit}
+.glist .rd a:hover{color:var(--accent)}
+.glist .rdata.can-drag{cursor:grab}
+body.dragging, body.dragging *{cursor:grabbing !important;user-select:none !important}
+.glist .lined::before,.glist .lined::after{content:"";position:absolute;top:0;bottom:0;width:18px;z-index:2;
+  opacity:0;transition:opacity .15s;pointer-events:none}
+.glist .lined::before{left:var(--tl,0);background:linear-gradient(to right,rgba(33,43,50,.09),rgba(33,43,50,.03) 45%,transparent)}
+.glist .lined::after{right:0;background:linear-gradient(to left,rgba(33,43,50,.09),rgba(33,43,50,.03) 45%,transparent)}
+.glist .lined.sh-left::before,.glist .lined.sh-right::after{opacity:1}
+
+/* Edit mode: compact fields (.ed, below) in the rows, add rows, and a
+   delete icon button (.ibtn.danger) at each row's right. */
+.glist .ed{height:var(--field-h-compact);font-size:var(--t-m);padding:0 9px}
+.glist input.ed[type=date],.glist input.ed[type=time]{padding:0 6px}
+body.editing .glist .row{padding-right:40px}
+.glist .del{position:absolute;right:7px;top:50%;transform:translateY(-50%);display:none}
+body.editing .glist .row .del{display:inline-flex}
+.glist .addrow{height:32px;display:flex;align-items:center;color:var(--accent);
+  font-size:var(--t-m);font-weight:500;cursor:pointer}
+.glist .addrow:hover{background:var(--row-hover)}
+.glist .additem{padding-left:35px}
+.glist .addsub{height:38px;padding-left:44px}
+.glist .subs .addrow:hover{background:var(--group)}
+.glist .addgroup{display:inline-flex;height:var(--btn-h);margin-top:20px;padding:0 16px;border-radius:var(--r-pill);
+  background:var(--group)}
+.glist .addgroup.off{color:var(--fg-2);cursor:default}
+.glist .addgroup.off:hover{background:var(--group)}
+/* Loading / nothing-matches / error message: centred. */
+.glist .empty{max-width:420px;margin:72px auto 0;padding:0;text-align:center;
+  color:var(--fg-2);font-size:var(--t-base)}
+.empty{padding:34px 20px;color:var(--fg-3);font-size:var(--t-m)}
+
+/* ---------- fields ----------
+   One look for every editable box (the user's call, 2026-10-04): white,
+   a firm --line-strong border that darkens on hover, the accent ring on
+   focus, grey when disabled or read-only. 34px; .glist rows use the 26px
+   compact size. The invoicer's and public form's fields match this. */
+.ed{width:100%;height:var(--field-h);border:1px solid var(--line-strong);border-radius:var(--r);background:var(--bg);
+  padding:0 10px;font-family:inherit;font-size:var(--t-base);font-style:inherit;color:var(--fg);
+  -webkit-appearance:none;appearance:none}
+textarea.ed{height:auto;min-height:var(--field-h);padding:7px 10px;line-height:1.4;resize:vertical}
+select.ed{padding-right:28px;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--fg-2) 50%),linear-gradient(135deg,var(--fg-2) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+.ed::placeholder{color:var(--fg-3)}
+.ed:hover:not(:disabled):not([readonly]){border-color:var(--fg-3)}
+.ed:focus{outline:none;border-color:var(--accent);box-shadow:var(--focus)}
+.ed:disabled,.ed[readonly]{background-color:var(--group);color:var(--fg-2)}
+
+/* ---------- buttons ----------
+   One button, pill-shaped (the user's call, 2026-10-04): .sbtn is grey,
+   .primary blue, .danger red (destructive confirms), .link text-only in
+   the accent (.link.danger: a quiet delete). .sm and .big sizes.
+   The label is centred on its capital letters, not the font's line box
+   (Segoe UI's line box sits the letters 1px low): text-box trims the line
+   to cap-top..baseline, and a <button> centres what's left - which needs
+   a block container, hence inline-block. A link doesn't centre its
+   content, so a.sbtn is padded down by half the space instead. */
+.sbtn{height:var(--btn-h);padding:0 16px;border-radius:var(--r-pill);font-size:var(--t-m);font-weight:500;
+  background:var(--group);color:var(--fg);border:0;cursor:pointer;white-space:nowrap;
+  display:inline-block;text-align:center;text-box:trim-both cap alphabetic;text-decoration:none}
+a.sbtn{padding-top:calc((var(--btn-h) - 1cap) / 2)}
+.sbtn:hover{filter:brightness(.95);text-decoration:none}
+.sbtn.primary{background:var(--accent);color:#fff}
+.sbtn.danger{background:var(--danger);color:#fff}
+.sbtn.link{background:transparent;color:var(--accent);padding:0 10px}
+.sbtn.link.danger{color:var(--danger)}
+.sbtn.link:hover{filter:none;background:var(--group)}
+.sbtn.link.danger:hover{background:var(--danger-bg)}
+.sbtn.sm{height:26px;padding:0 10px;font-size:var(--t-s)}
+a.sbtn.sm{padding-top:calc((26px - 1cap) / 2)}   /* a small link-button, centred like a.sbtn above */
+.sbtn.big{height:44px;padding:0 28px;font-size:var(--t-l)}
+.sbtn:disabled{opacity:.4;cursor:default;filter:none}
+/* Icon buttons: round, for x, arrows and the like. .danger in red. */
+.ibtn{width:28px;height:28px;flex:none;border-radius:var(--r-pill);display:inline-flex;align-items:center;justify-content:center;
+  color:var(--fg-2);font-size:var(--t-base);line-height:1;cursor:pointer}
+.ibtn:hover:not(:disabled){background:var(--group);color:var(--fg)}
+.ibtn.danger{color:var(--danger);font-size:18px}
+.ibtn.danger:hover:not(:disabled){background:var(--danger-bg);color:var(--danger)}
+.ibtn:disabled{opacity:.3;cursor:default}
+
+/* ---------- dialogs (sign-in here; the detail sheet in views/sheet.css) ---------- */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.28);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;padding:24px;z-index:60}
+.backdrop.open{display:flex}
+.sheet{background:var(--bg);border-radius:var(--r-xl);width:100%;max-width:400px;padding:22px 24px 20px;
+  box-shadow:var(--shadow-pop)}
+.sheet h2{font-size:var(--t-xl);font-weight:600;letter-spacing:-.015em;margin:10px 0 2px}
+.sheet .sub{font-size:var(--t-m);color:var(--fg-2);margin:0}
+.sheet .actions{margin-top:18px;display:flex;gap:8px;justify-content:flex-end}
+.remember{display:flex;align-items:center;gap:7px;margin-top:4px;font-size:var(--t-m);color:var(--fg-2);cursor:pointer;user-select:none}
+.remember input{margin:0;width:14px;height:14px;accent-color:var(--accent);cursor:pointer}
+
+/* In-app confirm/alert (js/core/dialog.js) - above every other dialog. */
+.dialog-backdrop{z-index:100}
+.dialog{max-width:380px;padding:20px 22px 16px}
+.dialog #dialog-msg{margin:0;font-size:var(--t-base);line-height:1.45;white-space:pre-line}
+
+/* ---------- public availability page ----------
+   availability.html shows the chrome without .authed, which stays reserved
+   for a genuine signed-in session. Same specificity as the
+   body:not(.authed) rule above, so being later wins. */
+body.pub .banner{display:flex}
+body.pub .app{display:flex}
+.pubtitle{font-size:var(--t-m);font-weight:600;white-space:nowrap}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important}
+  body.editing .bar::after{animation:none;background:none}
+  .viewmenu{animation:none}
+  .spinner{animation-duration:2.4s}   /* still turning, so it reads as busy, just slower */
+}

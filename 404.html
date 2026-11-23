@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Not found</title>
+<style>
+  :root{ color-scheme: light; }
+  body{ margin:0; min-height:100vh; display:grid; place-items:center; background:#f4f5f7; color:#1f2933;
+        font:15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif; }
+  main{ background:#fff; border-radius:12px; padding:32px 36px; max-width:420px; margin:16px;
+        box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  h1{ font-size:18px; margin:0 0 8px; }
+  p{ margin:0; color:#52606d; }
+</style>
+<script>
+  // GitHub Pages has no rewrites, so form links in the old /f/<code> shape
+  // land here: send them on to form.html#<code>, next to this page.
+  (function(){
+    var m = location.pathname.match(/^(.*)\/f\/([a-z0-9]+)\/?$/);
+    if (m) location.replace(m[1] + "/form.html" + location.search + "#" + m[2]);
+  })();
+</script>
+</head>
+<body>
+<main>
+  <h1>Page not found</h1>
+  <p>This link isn't right, or the page has moved.</p>
+</main>
+</body>
+</html>
