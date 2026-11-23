@@ -8,7 +8,7 @@
                              .authWithPassword  .authRefresh   ("users" only)
      pb.filter(expr, params) PocketBase filter text with {:name} values
      pb.send(path, opts)     the server routes (/api/...), now an Edge Function
-     pb.files.getURL(...)    app card images (Supabase Storage)
+     pb.files.signedURLs()  app card images (Supabase Storage)
 
    Filters are PocketBase's syntax - `a = "x" && (b >= "y" || c != "")` -
    parsed here and turned into PostgREST filters. Only what the board uses
@@ -379,13 +379,20 @@ async function send(path, { method = "GET", query: qs, body, headers = {} } = {}
 
 /* ------------------------------------------------------------ files */
 
-// App card images: public files in the "apps" storage bucket, by path.
+// App card images: files under apps/ in the private "SaIL-Away" storage
+// bucket. They need sign-in, so the board gets short-lived signed URLs, all
+// in one request. Paths that can't be signed come back as "".
+const BUCKET = "SaIL-Away", IMG_TTL = 12 * 3600;
 const files = {
-  getURL(_record, path){
-    if(!path) return "";
-    return `${URL_}/storage/v1/object/public/apps/${String(path).split("/").map(encodeURIComponent).join("/")}`;
+  async signedURLs(paths){
+    const want = [...new Set(paths.filter(Boolean).map(p => "apps/" + String(p).replace(/^\/+/, "")))];
+    if(!want.length) return {};
+    const { data, error } = await sb.storage.from(BUCKET).createSignedUrls(want, IMG_TTL);
+    if(error){ console.error(error); return {}; }
+    const out = {};
+    for(const d of data || []) if(d.signedUrl && !d.error) out[d.path.slice(5)] = d.signedUrl;
+    return out;
   },
 };
-files.getUrl = files.getURL;
 
 export const pb = { authStore, collection, filter, send, files };

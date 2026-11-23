@@ -27,9 +27,11 @@ async function load(){
       const recs = await pb.collection("apps").getFullList({ sort: "sort,title", requestKey: null,
         filter: pb.filter("sites.id ?= {:s}", { s: site.current?.id || "" }) });
       if(g !== gen) return;
+      const urls = await pb.files.signedURLs(recs.map(r => r.image));
+      if(g !== gen) return;
       APPS.splice(0, APPS.length, ...recs.map(r => ({
         id: r.id, title: r.title, description: r.description || "", url: safeUrl(r.url),
-        image: r.image ? pb.files.getURL(r, r.image, { thumb: "640x360" }) : "",
+        image: urls[String(r.image || "").replace(/^\/+/, "")] || "",
       })));
       loaded = true;
       render(); updateCount();
