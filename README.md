@@ -1,3 +1,7 @@
+<p align="center">
+	<img src="Thumb.png" alt="SaIL Away logo" width="640">
+</p>
+
 # SaIL-Away
 
 The SaIL Centre's facilities board - courses, timetable, rota, staff leave,
