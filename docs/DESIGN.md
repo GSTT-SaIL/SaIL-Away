@@ -25,6 +25,7 @@ a view's CSS is a bug unless it's in the exceptions below.
 | "All" | Admins' view of every site (view-only; Courses, Timetable, Rota and Staff). Each site's **colour** stands in for group colours: group headers in it with a `.sitetag` pill (the site's name, white on its colour); Timetable room names in it with the pill under them; bookings plain light grey (`.blk.neutral`); the key lists the sites. SaIL's colour is the brand's Magenta Deep `#A81765` (the user's design, 2026-10-07). |
 | site wordmark | A site without its own logo (`sites.logo` unticked) shows a **wordmark** in the logo's place: its name, 40px extra-bold in the site's `colour`, its `full_name` under it in 11px grey (the user's pick from a rig, 2026-10-07, over a tile, colour block, accent bar and outline badge). `.sitemark` in base.css; also on the public availability page and in PDFs. |
 | `--banner` | The banner background: **white**, carrying the SaIL colour logo (the user's call, 2026-10-07; it was a magenta gradient with the white logo). The board below casts a shadow up onto it (`.app` box-shadow: a hairline round its rounded top plus a soft upward shadow) so the two read as separate layers. |
+| sign-in logo | The boat logo (`assets/login-logo.png`) at the top of the sign-in box, 120px wide, centred - **the sign-in screen only** (the user's call, 2026-11-02). It keeps its white background, which blends into the white card: the face in the sail is white too and joins the outside, so a transparent cut-out would lose it. Under it **"SaIL Away"** (no hyphen), 26px bold in the logo's deep red `#760D45`, in **Frutiger** (same day) - only where Frutiger is installed (it isn't served), Arial elsewhere. The screen behind it is **plain white** (not the dimmed backdrop other pop-ups use) and the card has its own **tight, even shadow** - a 22px glow on every side at 28%, no drop (2026-11-03, tuned with the user; a grey outline was tried and rejected). `#login-backdrop`, `.loginlogo` / `.loginname` in base.css. |
 | `--fg` / `--fg-2` / `--fg-3` | Text: primary / secondary (labels, muted cells) / tertiary (hints, counts, placeholders) |
 | `--bg` | White: page, cards, fields, the open tab |
 | `--group` | Grey fill: item rows, panels behind cards, plain buttons, read-only fields |
@@ -179,13 +180,18 @@ shows both.
 
 ### Grouped lists - `.glist` (base.css)
 
-The "data boards": Courses, Invoices, Forms, Staff (Staff has no
+The "data boards": Courses, Invoices, Forms, Staff, Admin (Staff and Admin have no
 sub-items; one group per person, its header in the person's **site
 colour** - like All's Courses, with the site pill in All - the user's
 call 2026-10-09, replacing plain grey). Category header (tinted,
 bold, in its ink) -> item rows (grey, 38px) -> sub-item rows. Full rules in
 base.css and CLAUDE.md "Grouped lists all look the same". A new board uses
 these classes and sets only its grid columns.
+
+The group headers carry the calendars' booking shadow (`--shadow-booking`,
+the user's call 2026-11-03). The card of rows under them stays flat: with
+the shadow there too, it ringed an expanded item's white band of sub-items,
+which the user didn't like.
 
 **Sub-items** (the user's call, 2026-10-07, chosen in a test rig): an open
 item's sub-items sit on a white band inside the item card (`.subs`, 22px
@@ -306,8 +312,16 @@ reduced motion.
   same over a fixed window: 8 weeks back to a year ahead.
 - **All three calendars run Monday to Sunday, weekends tinted** (the
   user's call, 2026-10-06 - Timetable and Availability used to stop at
-  Friday, hiding weekend bookings). The tint is the same in both:
-  `--group` mixed 50% into `--bg` (`.we` in `core/grid.js` / `tickets.js`).
+  Friday, hiding weekend bookings). Weekends and today are tinted the same
+  in every calendar, day header included: `--weekend` (`#F5F5F7`, the full `--group` grey) and
+  `--today` (5% accent) in base.css, `.we` / `.today` from `core/grid.js`
+  / `tickets.js`. Made more obvious at the user's ask (2026-11-03) - they
+  were half of `--group` and 3% accent, too faint to notice.
+  Every booking and event box - Timetable, Rota (allocations and hatched
+  leave), Tickets, the public page - has the same soft shadow,
+  `--shadow-booking`, so it lifts off those tints, which are as pale as the
+  group tints (same day, the user's call; a coloured stripe down the left
+  was tried and dropped).
   Timetable columns are 150px minimum (Tickets' are 130px) so the week fits.
 - The public form page uses 40px fields and 15px text (touch-friendly).
 

@@ -297,6 +297,14 @@ function collection(name){
       setRecord(await loadProfile());
       return { token: authStore.token, record };
     },
+    // The Admin page's accounts. Making and changing sign-ins needs the
+    // server key, so these go to the api function's admin routes, which
+    // check the caller is an admin. Fields as the old users records:
+    // id, email, name, role, sites, home_site (+ password when setting one).
+    async getFullList(){ return (await send("/api/admin/users")).items; },
+    async create(row){ return send("/api/admin/users", { method: "POST", body: row }); },
+    async update(id, row){ return send("/api/admin/users/" + encodeURIComponent(id), { method: "PATCH", body: row }); },
+    async delete(id){ await send("/api/admin/users/" + encodeURIComponent(id), { method: "DELETE" }); return true; },
   };
 
   return {

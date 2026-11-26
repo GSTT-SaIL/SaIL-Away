@@ -87,8 +87,8 @@
 @keyframes rflash{from{background:color-mix(in srgb,var(--accent) 16%,var(--bg))}to{background:var(--bg)}}
 @media (prefers-reduced-motion:reduce){ .tt>.room.flash{animation:none} }
 /* Weekends recede a little, the same tint as the Tickets calendar's. */
-.tt>.cell.we{background:color-mix(in srgb,var(--group) 50%,var(--bg))}
-.tt>.cell.today{background:var(--today)}
+.tt>.cell.we,.tt .h.we{background:var(--weekend)}
+.tt>.cell.today,.tt .h.today{background:var(--today)}
 /* Days of a boundary week outside the financial year on show: greyed, with
    no bookings drawn (paintGrid's `outside`). */
 .tt>.cell.out{background:repeating-linear-gradient(135deg,var(--group) 0 6px,transparent 6px 12px)}
@@ -121,6 +121,11 @@
   .blk .bm{display:none}
 }
 .blk:hover{filter:brightness(.95)}
+/* A shadow lifts bookings - and the Rota's hatched leave - off the today
+   and weekend tints, which are as pale as the group tints (the user's
+   call, 2026-11-03; a coloured stripe down the left was tried and
+   dropped). Tickets' events share it. */
+.blk{box-shadow:var(--shadow-booking)}
 /* "All": every booking plain light grey, whichever site or group. */
 .blk.neutral{background:color-mix(in srgb,var(--fg) 8%,#fff);color:var(--fg)}
 .blk.av{background:#fdeaea;color:#b3261e;cursor:inherit}

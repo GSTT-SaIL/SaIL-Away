@@ -110,7 +110,7 @@ function render(){
 
   $("staff-rows").innerHTML = html || (filtering
     ? `<div class="empty">Nothing matches that filter. Try a name or a kind of leave.</div>`
-    : `<div class="empty">No staff on this site yet. Give people a home site in the dashboard (users &rarr; home_site).</div>`);
+    : `<div class="empty">No staff on this site yet. Give people a home site on the Admin page.</div>`);
   countText = `${shownPeople} ${shownPeople === 1 ? "person" : "people"}, ${shownLeave} ${shownLeave === 1 ? "entry" : "entries"}`;
   lineUp($("staff-rows"));
 }

@@ -8,11 +8,13 @@
    A view object:
      id       the id of its .pane element (omit for components without a pane)
      label    its name in the view picker (omit to leave it out of the picker)
-     requires "admin" to list it only for admins (the data's API rules must
+     requires "admin" to list it only for admin accounts, on every site and
+              in All, whatever sites.views says (the data's API rules must
               enforce the same - this only hides the view)
      toolbar  { filter: placeholder text or false, expandAll, weekStepper,
               rowFilter: show the rows tick-list (#rowpick) - the view
-              wires it itself }
+              wires it itself, edit: false hides Edit, for a view with
+              nothing it could switch on }
      init()   once, at start-up: wire its own listeners
      render() redraw from the shared data/ui state
      show()   it has just become the visible view (e.g. lazy-load data)
@@ -134,6 +136,7 @@ function setEditing(on){
 // Anything new that holds user data must be cleared by its view's reset().
 function signOut(){
   pb.authStore.clear();
+  ready = false;            // no views opened from the address until signed in again
   setEditing(false);
   document.body.classList.remove("authed");
   clearData();
@@ -188,7 +191,7 @@ async function boot(){
     await loadSites();
     buildSiteOptions();
     if(!site.current){
-      views.forEach(v=>v.status?.("error", "Your account hasn't been given a site yet. Ask an admin to add one in the dashboard."));
+      views.forEach(v=>v.status?.("error", "Your account hasn't been given a site yet. Ask an admin to add one."));
       return;
     }
     await buildYearOptions();
@@ -309,6 +312,23 @@ async function switchSite(id){
   current?.show?.();
 }
 
+// The Admin page changed what the board is built from (a site's details,
+// rooms, departments, who's staff): read it all again, staying where you are.
+export async function refreshBoard(){
+  const id = site.current?.id;
+  try{
+    await loadSites();
+    if(id) setSite(id);
+    buildSiteOptions();
+    views.forEach(v=>{ (v.siteChanged || v.periodChanged)?.call(v); v.status?.("loading"); });
+    updateAuthUI();
+    buildViewOptions();
+    await loadAll();
+  }catch(err){ reportSaveError(err); return; }
+  rerender();
+  current?.show?.();
+}
+
 /* ---------------------------- view picker ---------------------------- */
 /* The view on show is in the address - #courses, #rota, #apps ... (each
    view's pane id without "pane-") - so Back after leaving the board, a
@@ -319,7 +339,9 @@ async function switchSite(id){
    data while signed out. */
 const viewKey = v => v.id.replace(/^pane-/, "");
 let ready = false;                                   // signed in, sites known
-let wanted = decodeURIComponent(location.hash.slice(1));   // the address's view, until used
+// A malformed address ("#%") mustn't throw here - this runs as the board loads.
+const hashView = () => { try { return decodeURIComponent(location.hash.slice(1)); } catch { return ""; } };
+let wanted = hashView();                             // the address's view, until used
 
 function showView(view){
   current = view;
@@ -334,6 +356,7 @@ function showView(view){
   document.body.classList.toggle("no-filter", !tb.filter);
   // The rows tick-list (core/tickpick.js) in its place, for views that ask.
   document.body.classList.toggle("row-filter", !!tb.rowFilter);
+  document.body.classList.toggle("no-edit", tb.edit === false);
   updateCount();
   view.show?.();
 }
@@ -345,10 +368,10 @@ const $ = id => document.getElementById(id);
 let viewPicker = null, yearPicker = null, sitePicker = null;
 
 // The views this account may see on this site: the site's own views
-// (sites.views), less admin-only ones for people who can't edit.
+// (sites.views), and admin-only ones for admin accounts.
 function buildViewOptions(){
-  const listed = views.filter(v=>v.label && hasView(viewKey(v)) &&
-    (v.requires !== "admin" || canEdit()));
+  const isAdmin = pb.authStore.record?.role === "admin";
+  const listed = views.filter(v=>v.label && (v.requires === "admin" ? isAdmin : hasView(viewKey(v))));
   // The address's view first (once signed in, and if this site has it);
   // otherwise stay on the current view if this account can still see it.
   const fromUrl = ready && wanted ? listed.find(v=>viewKey(v) === wanted) : null;
@@ -402,7 +425,7 @@ export function start(){
   // A view typed into the address (or a link followed) while the board is open.
   window.addEventListener("hashchange", ()=>{
     if(!ready || location.hash === "#" + (current && viewKey(current))) return;
-    wanted = decodeURIComponent(location.hash.slice(1));
+    wanted = hashView();
     buildViewOptions();
   });
   buildViewOptions();

@@ -26,7 +26,11 @@
   --row-hover:#EDEDF0;   /* hover on grey fills */
   --bg:#FFFFFF;
   --accent:#0071E3;      /* links, focus rings, primary buttons, today */
-  --today:color-mix(in srgb, var(--accent) 3%, #fff);  /* "today" column/cell tint */
+  /* Calendar tints, the same in every calendar - made more obvious at the
+     user's ask, 2026-11-03 (they were 3% blue and half of --group). */
+  --today:color-mix(in srgb, var(--accent) 5%, #fff);   /* "today" column/cell and its header */
+  --shadow-booking:0 1px 3px rgba(33,43,50,.16),0 2px 8px rgba(33,43,50,.14);  /* every booking/event box in every calendar, so it lifts off those tints (same day) */
+  --weekend:#F5F5F7;                              /* Saturday and Sunday columns/cells and headers */
   --danger:#D70015; --danger-bg:#FFEBEE;  /* deleting, destructive confirms */
   --warn:#B25000; --warn-bg:#FFF4E5;      /* warnings: problems, unsaved, going back */
   --ok:#248A3D;
@@ -225,6 +229,7 @@ body.row-filter #rowpick{display:block}
    the bar, so the count picks it up instead. */
 body.no-filter #q{display:none}
 body.no-filter .bar .count{margin-left:auto}
+body.no-edit #edit-toggle{display:none!important}
 
 .editbtn{height:28px;padding:0 16px;border-radius:var(--r-pill);background:var(--edit);color:#fff;
   font-size:var(--t-m);font-weight:600;white-space:nowrap;flex:none}
@@ -278,7 +283,9 @@ body.no-filter .bar .count{margin-left:auto}
      with the same 12px above it as below it to the next header. */
 .glist .gsec+.gsec{margin-top:6px}
 .glist .grouphead{display:flex;align-items:center;height:38px;margin-top:12px;cursor:pointer;
-  border-radius:var(--r);color:var(--fg);background:var(--gtint,var(--group))}
+  border-radius:var(--r);color:var(--fg);background:var(--gtint,var(--group));
+  box-shadow:var(--shadow-booking)}   /* the calendars' booking shadow, on the group header only - on the
+     card of rows too it ringed an expanded item's white band (the user's call, 2026-11-03) */
 .glist .grouphead:hover{background:color-mix(in srgb,var(--gink,var(--fg)) 9%,var(--gtint,var(--group)))}
 .glist .grouphead .gname{display:flex;align-items:center;gap:8px;padding-left:15px;flex:1;min-width:0;
   font-size:15px;font-weight:700;letter-spacing:-.015em;color:var(--gink,var(--fg))}
@@ -452,6 +459,18 @@ a.sbtn.sm{padding-top:calc((26px - 1cap) / 2)}   /* a small link-button, centred
   box-shadow:var(--shadow-pop)}
 .sheet h2{font-size:var(--t-xl);font-weight:600;letter-spacing:-.015em;margin:10px 0 2px}
 .sheet .sub{font-size:var(--t-m);color:var(--fg-2);margin:0}
+/* The sign-in screen on plain white rather than the dimmed backdrop other
+   pop-ups use (the user's call, 2026-11-03), its card lifted by a tight
+   shadow, even on every side (no drop, unlike --shadow-pop). */
+#login-backdrop{background:var(--bg);backdrop-filter:none}
+#login-backdrop .sheet{box-shadow:0 0 0 .5px rgba(0,0,0,.06),0 0 22px rgba(33,43,50,.28)}
+.sheet .loginlogo{display:block;width:120px;height:auto;margin:6px auto 4px}
+/* The name under it, in the logo's deep red, in Frutiger (the user's call,
+   2026-11-02). Frutiger isn't served - it's only used where it's installed,
+   so most computers show Arial (the brand's own fallback). */
+@font-face{font-family:"SaIL Frutiger";font-weight:700;
+  src:local("Frutiger 65 Bold"),local("Frutiger-Bold"),local("Frutiger LT Std 65 Bold"),local("Frutiger LT 65 Bold")}
+.sheet .loginname{margin:0 0 8px;text-align:center;color:#760D45;font:700 26px/1.1 "Frutiger W01","SaIL Frutiger",Arial,sans-serif;letter-spacing:-.01em}
 .sheet .actions{margin-top:18px;display:flex;gap:8px;justify-content:flex-end}
 .remember{display:flex;align-items:center;gap:7px;margin-top:4px;font-size:var(--t-m);color:var(--fg-2);cursor:pointer;user-select:none}
 .remember input{margin:0;width:14px;height:14px;accent-color:var(--accent);cursor:pointer}

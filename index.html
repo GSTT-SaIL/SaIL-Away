@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="css/views/forms.css">
 <link rel="stylesheet" href="css/views/staff.css">
 <link rel="stylesheet" href="css/views/apps.css">
+<link rel="stylesheet" href="css/views/admin.css">
 <link rel="stylesheet" href="css/views/ebcreate.css">
 </head>
 <body>
@@ -147,6 +148,12 @@
   <div id="app-cards"></div>
 </div>
 
+<div class="pane" id="pane-admin">
+  <div class="list glist">
+    <div id="admin-rows"></div>
+  </div>
+</div>
+
 <div class="pane" id="pane-tickets">
   <!-- Same toolbar as the Timetable's week stepper, for months. -->
   <div class="toolbar">
@@ -203,6 +210,11 @@
       <button type="button" role="tab" class="ftab" id="sheet-tab-attendees" data-tab="attendees" aria-controls="sheet-panel-attendees">Attendees <span class="fcount"></span></button>
       <!-- Forms (js/views/forms.js) -->
       <button type="button" role="tab" class="ftab" id="sheet-tab-create" data-tab="create" aria-controls="sheet-panel-create">New course</button>
+      <!-- The Admin page (js/views/admin.js) -->
+      <button type="button" role="tab" class="ftab" id="sheet-tab-account" data-tab="account" aria-controls="sheet-panel-account">Account</button>
+      <button type="button" role="tab" class="ftab" id="sheet-tab-site" data-tab="site" aria-controls="sheet-panel-site">Details</button>
+      <button type="button" role="tab" class="ftab" id="sheet-tab-rooms" data-tab="rooms" aria-controls="sheet-panel-rooms">Rooms</button>
+      <button type="button" role="tab" class="ftab" id="sheet-tab-departments" data-tab="departments" aria-controls="sheet-panel-departments">Departments</button>
       <button type="button" role="tab" class="ftab" id="sheet-tab-preview" data-tab="preview" aria-controls="sheet-panel-preview">Preview</button>
       <button type="button" role="tab" class="ftab" id="sheet-tab-questions" data-tab="questions" aria-controls="sheet-panel-questions">Questions <span class="fcount"></span></button>
       <button type="button" role="tab" class="ftab" id="sheet-tab-responses" data-tab="responses" aria-controls="sheet-panel-responses">Responses <span class="fcount"></span></button>
@@ -260,6 +272,20 @@
         <div class="fbody"></div>
       </section>
 
+      <!-- Filled by the Admin page. -->
+      <section class="fpanel" role="tabpanel" id="sheet-panel-account" data-tab="account" aria-labelledby="sheet-tab-account">
+        <div class="fbody"></div>
+      </section>
+      <section class="fpanel" role="tabpanel" id="sheet-panel-site" data-tab="site" aria-labelledby="sheet-tab-site">
+        <div class="fbody"></div>
+      </section>
+      <section class="fpanel" role="tabpanel" id="sheet-panel-rooms" data-tab="rooms" aria-labelledby="sheet-tab-rooms">
+        <div class="fbody"></div>
+      </section>
+      <section class="fpanel" role="tabpanel" id="sheet-panel-departments" data-tab="departments" aria-labelledby="sheet-tab-departments">
+        <div class="fbody"></div>
+      </section>
+
       <!-- Filled by the Forms view: the form as respondents see it, its
            question editor, and its responses. -->
       <section class="fpanel" role="tabpanel" id="sheet-panel-preview" data-tab="preview" aria-labelledby="sheet-tab-preview">
@@ -277,8 +303,12 @@
 
 <div class="backdrop open" id="login-backdrop">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <!-- The sign-in screen only (the user's call, 2026-11-02). Its white
+         background is the card's - the face is white too, so it can't be
+         made transparent. -->
+    <img class="loginlogo" src="assets/login-logo.png" alt="">
+    <p class="loginname">SaIL Away</p>
     <h2 id="login-title">Sign in</h2>
-    <p class="sub">Sign in to view the bookings board.</p>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
       <input class="ed" id="login-email" type="email" placeholder="Email" autocomplete="username">
       <input class="ed" id="login-password" type="password" placeholder="Password" autocomplete="current-password">

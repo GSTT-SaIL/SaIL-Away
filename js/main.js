@@ -10,6 +10,7 @@ import invoices from "./views/invoices.js";
 import forms from "./views/forms.js";
 import staff from "./views/staff.js";
 import apps from "./views/apps.js";
+import admin from "./views/admin.js";
 import sheet from "./views/sheet.js";
 
 register(courses);
@@ -20,6 +21,7 @@ register(invoices);
 register(forms);
 register(staff);
 register(apps);
+register(admin);
 register(sheet);        // no pane or menu entry - registered so sign-out closes it
 
 start();

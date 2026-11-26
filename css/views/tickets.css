@@ -45,7 +45,7 @@
 #pane-tickets .tkcal>.cell:nth-child(7n+2){border-left:0}
 #pane-tickets .tkcal>.cell:nth-child(-n+8){border-top:0}
 /* Weekends and days outside the month recede a little. */
-#pane-tickets .tkcal>.cell.we{background:color-mix(in srgb,var(--group) 50%,var(--bg))}
+#pane-tickets .tkcal>.cell.we,#pane-tickets .tkcal .h.we{background:var(--weekend)}
 #pane-tickets .tkcal>.cell.out .dnum{color:var(--fg-3);font-weight:500}
 #pane-tickets .tkcal>.cell.today{background:var(--today)}
 #pane-tickets .dnum{flex:none;font-size:13px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums;padding-left:2px}
@@ -57,7 +57,7 @@
    through the yellow midpoint. No capacity or count = neutral grey. */
 #pane-tickets .tkev{flex:none;display:flex;flex-direction:column;gap:1px;width:100%;text-align:left;
   border-radius:6px;padding:4px 8px 5px;line-height:1.15;cursor:pointer;
-  background:hsl(var(--h) 70% 93%);color:hsl(var(--h) 75% 24%)}
+  background:hsl(var(--h) 70% 93%);color:hsl(var(--h) 75% 24%);box-shadow:var(--shadow-booking)}
 #pane-tickets .tkev.unrated{background:var(--group);color:var(--fg)}
 #pane-tickets .tkev:hover{filter:brightness(.95)}
 #pane-tickets .tkev:focus-visible{outline:2px solid var(--accent);outline-offset:1px}

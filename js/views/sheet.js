@@ -178,7 +178,7 @@ async function fillAllocate(body, isCurrent, b){
           ${edit ? `<button type="button" class="ibtn danger" data-unalloc="${esc(id)}" title="Remove" aria-label="Remove ${esc(nameOf(id) || "")}">&times;</button>` : ""}
         </li>`).join("")}</ul>`
         : `<p class="allocnone">No one allocated yet.</p>`}
-      ${!people.length ? `<p class="allocnone">This site has no staff yet - give people a home site in the dashboard.</p>` : ""}
+      ${!people.length ? `<p class="allocnone">This site has no staff yet - give people a home site on the Admin page.</p>` : ""}
     </div>`;
     const c = $("sheet-tab-allocate").querySelector(".fcount");
     if(c) c.textContent = mine.length || "";
@@ -254,6 +254,9 @@ async function close(refocus = true, force = false){
 }
 
 // Re-run a tab's fill function (e.g. after the item changed), if it has one.
+// Closes the pop-up from inside it (the item's canClose() is still asked).
+export const closeItem = () => close();
+
 export function refillTab(id){
   if(!fillers[id]) return;
   filled.add(id);

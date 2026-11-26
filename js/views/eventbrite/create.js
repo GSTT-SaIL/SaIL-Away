@@ -253,7 +253,7 @@ async function build(body, isCurrent, touched, finished){
   // Create stays off until every problem is dealt with (the user's call,
   // 2026-11-02): errors fixed, and warnings fixed or ticked as checked. The
   // tick is for that exact set of warnings - a new or changed one clears it.
-  let blocks = 0, tried = false, warnKey = "", ackedFor = "";
+  let blocks = 0, tried = false, warnKey = "", ackedFor = "", sent = false;
   function update(){
     const loc = body.querySelector("input[name=loc]:checked").value, dates = readDates();
     for(const d of dates){
@@ -285,8 +285,10 @@ async function build(body, isCurrent, touched, finished){
     $("#eb-problist").innerHTML = probs.sort((a, b) => (a[0] === "block" ? -1 : 1) - (b[0] === "block" ? -1 : 1))
       .map(([lvl, msg]) => `<li class="${lvl}"><span class="tag">${lvl === "block" ? "Fix" : "Check"}</span>${esc(msg)}</li>`).join("");
     // Off while anything's waiting; a click on it then shows what's
-    // blocking (outlines) - see #eb-sendwrap below.
-    $("#eb-send").disabled = !info.ready || waiting;
+    // blocking (outlines) - see #eb-sendwrap below. Also off once these
+    // drafts are made, until something changes - another click would make
+    // them all again.
+    $("#eb-send").disabled = !info.ready || waiting || sent;
     $("#eb-send").textContent = dates.length === 1 ? "Create 1 draft" : `Create ${dates.length} drafts`;
   }
 
@@ -339,7 +341,7 @@ async function build(body, isCurrent, touched, finished){
       if(!isCurrent()) return;
       showResults(res);
       $("#eb-status").textContent = dry ? "Nothing was sent - this is what would go." : "Done. Nothing was published.";
-      if(!dry){ finished(); if(res.image?.some(x => x.status === "ok")) info.images = (await pb.send("/api/eventbrite/create-info?site=" + encodeURIComponent(siteId), { requestKey: null })).images; }
+      if(!dry){ finished(); sent = true; if(res.image?.some(x => x.status === "ok")) info.images = (await pb.send("/api/eventbrite/create-info?site=" + encodeURIComponent(siteId), { requestKey: null })).images; }
     }catch(err){
       if(isCurrent()) $("#eb-status").textContent = "Couldn't create: " + (err?.data?.error || err.message || err);
     }
@@ -372,8 +374,9 @@ async function build(body, isCurrent, touched, finished){
   $("#eb-dates").append(dateCard({ sd: first, st: "09:30", ed: first, et: "16:30", venue: venues[0]?.id || "" }));
   update();
   // A change clears the last status line ("Done", "Nothing was sent ...").
-  f.addEventListener("input", () => { touched(); $("#eb-status").textContent = ""; update(); });
-  f.addEventListener("change", () => { touched(); $("#eb-status").textContent = ""; update(); });
+  // It also lets Create run again (a new course from the same form).
+  f.addEventListener("input", () => { touched(); sent = false; $("#eb-status").textContent = ""; update(); });
+  f.addEventListener("change", () => { touched(); sent = false; $("#eb-status").textContent = ""; update(); });
   f.addEventListener("submit", e => { e.preventDefault(); send(false); });
   // Before the form's own listener re-checks: record which warnings were ticked.
   $("#eb-ack").addEventListener("input", () => { ackedFor = $("#eb-ack").checked ? warnKey : ""; });
@@ -381,7 +384,8 @@ async function build(body, isCurrent, touched, finished){
   // still outlines what's blocking or points at the tick.
   $("#eb-sendwrap").addEventListener("click", () => {
     if(!$("#eb-send").disabled || !info.ready) return;
-    if(blocks) send(false);
+    if(sent) $("#eb-status").textContent = "These drafts are made. Change something to create more.";
+    else if(blocks) send(false);
     else $("#eb-status").textContent = "Tick that you've checked the warnings above first.";
   });
   $("#eb-dry").addEventListener("click", () => send(true));

@@ -14,6 +14,11 @@
 //   POST /eventbrite/upload-slot?site=
 //   POST /eventbrite/create?site=           {dry: true} builds every call, sends none
 //   POST /eventbrite/delete?site=           only drafts the board made
+// Admins only (the Admin page, js/views/admin.js):
+//   GET    /admin/users                     every account: name, email, role, sites
+//   POST   /admin/users                     a new account, signed in with a password
+//   PATCH  /admin/users/<id>                change one (email, password, role...)
+//   DELETE /admin/users/<id>                delete one - never your own
 //
 // The function runs with the service key, past row-level security, so every
 // route checks who's asking itself. Eventbrite tokens come from
@@ -35,7 +40,7 @@ const db: SupabaseClient = createClient(SUPABASE_URL, serviceKey(), { auth: { pe
 const EB = "https://www.eventbriteapi.com/v3";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-link, x-client-info",
   "Access-Control-Max-Age": "86400",
 };
@@ -389,6 +394,125 @@ async function ebDelete(req: Request, url: URL) {
   return json(200, { deleted: out });
 }
 
+/* ------------------------------------------------------------ admin: accounts */
+
+// Accounts are auth.users (email, password) + public.profiles (name, role,
+// sites, home site). Admins manage both from the board's Admin page; nobody
+// else gets anything here. An admin can't take away their own admin role or
+// delete their own account, so there's always an admin left (was
+// pb_hooks/users.pb.js). Studio can still do anything.
+const ACCOUNT_FIELDS = "id,email,name,role,sites,home_site";
+const ROLES = ["admin", "editor", "viewer"];
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function admin(req: Request): Promise<Person> {
+  const p = await person(req);
+  if (p.role !== "admin") throw new HttpError(403, "Only admins can manage accounts.");
+  return p;
+}
+
+// Checks what was sent and returns the profile fields to save. `fresh` is
+// a new account: name, email and password are then required.
+async function accountFields(b: any, fresh: boolean) {
+  const out: Record<string, unknown> = {};
+  if (fresh || b.name !== undefined) {
+    const name = String(b.name || "").trim();
+    if (!name || name.length > 100) throw new HttpError(400, "Name: give a name of up to 100 characters.");
+    out.name = name;
+  }
+  if (fresh || b.email !== undefined) {
+    const email = String(b.email || "").trim().toLowerCase();
+    if (!EMAIL.test(email) || email.length > 254) throw new HttpError(400, "Email: that doesn't look like an email address.");
+    out.email = email;
+  }
+  if (fresh || (b.password !== undefined && b.password !== "")) {
+    const pw = String(b.password || "");
+    if (pw.length < 8 || pw.length > 72) throw new HttpError(400, "Password: use 8 to 72 characters.");
+  }
+  if (b.role !== undefined) {
+    if (!ROLES.includes(b.role)) throw new HttpError(400, "Role: pick admin, editor or viewer.");
+    out.role = b.role;
+  }
+  const { data: sites } = await db.from("sites").select("id");
+  const known = new Set((sites || []).map((s) => s.id));
+  if (b.sites !== undefined) {
+    if (!Array.isArray(b.sites) || b.sites.some((s: unknown) => !known.has(String(s)))) throw new HttpError(400, "Sites: one of those sites doesn't exist.");
+    out.sites = [...new Set(b.sites.map(String))];
+  }
+  if (b.home_site !== undefined) {
+    const h = String(b.home_site || "");
+    if (h && !known.has(h)) throw new HttpError(400, "Staff page: that site doesn't exist.");
+    out.home_site = h || null;
+  }
+  if (out.role === "admin") out.sites = [];   // admins hold every site
+  return out;
+}
+
+// Supabase's own errors, in the board's words.
+function authProblem(err: { message?: string; status?: number } | null): never {
+  const m = err?.message || "";
+  if (/already (been )?registered|already exists/i.test(m)) throw new HttpError(400, "Email: there's already an account with that email.");
+  if (/password/i.test(m)) throw new HttpError(400, "Password: " + m);
+  console.error("Account change failed", m);
+  throw new HttpError(500, "Couldn't save the account - please try again.");
+}
+
+async function adminUsers(req: Request) {
+  await admin(req);
+  const { data, error } = await db.from("profiles").select(ACCOUNT_FIELDS).order("name");
+  if (error) { console.error("Listing accounts failed", error.message); return json(500, { error: "Couldn't load the accounts." }); }
+  return json(200, { items: data });
+}
+
+async function adminCreate(req: Request) {
+  await admin(req);
+  const b = await req.json().catch(() => ({})) as any;
+  const fields = await accountFields(b, true);
+  const { data, error } = await db.auth.admin.createUser({
+    email: fields.email as string, password: String(b.password), email_confirm: true, user_metadata: { name: fields.name },
+  });
+  if (error || !data.user) authProblem(error);
+  // The new-account trigger made a viewer profile; now give it the rest.
+  const { data: p, error: e2 } = await db.from("profiles").update(fields).eq("id", data.user!.id).select(ACCOUNT_FIELDS).single();
+  if (e2) { console.error("Setting up a new profile failed", e2.message); return json(500, { error: "The account was made, but its details didn't save. Open it and save again." }); }
+  return json(200, p);
+}
+
+async function adminUpdate(req: Request, id: string) {
+  const me = await admin(req);
+  const b = await req.json().catch(() => ({})) as any;
+  const { data: old } = await db.from("profiles").select(ACCOUNT_FIELDS).eq("id", id).maybeSingle();
+  if (!old) return json(404, { error: "No such account." });
+  const fields = await accountFields(b, false);
+  if (id === me.id && fields.role !== undefined && fields.role !== "admin") {
+    return json(400, { error: "You can't remove your own admin role. Ask another admin." });
+  }
+  const auth: Record<string, unknown> = {};
+  if (fields.email !== undefined && fields.email !== old.email) auth.email = fields.email;
+  if (b.password) auth.password = String(b.password);
+  if (fields.name !== undefined) auth.user_metadata = { name: fields.name };
+  if (auth.email) auth.email_confirm = true;
+  if (Object.keys(auth).length) {
+    const { error } = await db.auth.admin.updateUserById(id, auth);
+    if (error) authProblem(error);
+  }
+  const { data: p, error } = await db.from("profiles").update(fields).eq("id", id).select(ACCOUNT_FIELDS).single();
+  if (error) { console.error("Saving a profile failed", error.message); return json(500, { error: "Couldn't save the account - please try again." }); }
+  return json(200, p);
+}
+
+async function adminDelete(req: Request, id: string) {
+  const me = await admin(req);
+  if (id === me.id) return json(400, { error: "You can't delete your own account. Ask another admin." });
+  const { data: old } = await db.from("profiles").select("id").eq("id", id).maybeSingle();
+  if (!old) return json(404, { error: "No such account." });
+  // Deleting the sign-in deletes the profile, their leave and prefs; a
+  // trigger takes them off sessions, and their notes keep their name.
+  const { error } = await db.auth.admin.deleteUser(id);
+  if (error) authProblem(error);
+  return json(200, { ok: true });
+}
+
 /* ------------------------------------------------------------ public: availability */
 
 // A site's rooms and when they're booked - room, date, start, end and
@@ -561,6 +685,14 @@ Deno.serve(async (req) => {
     if (m === "POST" && path === "/eventbrite/upload-slot") return await ebUploadSlot(req, url);
     if (m === "POST" && path === "/eventbrite/create") return await ebCreate(req, url);
     if (m === "POST" && path === "/eventbrite/delete") return await ebDelete(req, url);
+    if (path === "/admin/users") {
+      if (m === "GET") return await adminUsers(req);
+      if (m === "POST") return await adminCreate(req);
+    }
+    if ((r = path.match(/^\/admin\/users\/([0-9a-f-]{36})$/))) {
+      if (m === "PATCH") return await adminUpdate(req, r[1]);
+      if (m === "DELETE") return await adminDelete(req, r[1]);
+    }
     return json(404, { error: "Not found." });
   } catch (err) {
     if (err instanceof HttpError) return json(err.status, { error: err.message });

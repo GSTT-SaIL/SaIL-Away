@@ -69,7 +69,8 @@ test("view picker works from the keyboard", async ({ page }) => {
   await page.focus("#view-btn");
   await page.keyboard.press("ArrowDown");
   await expect(page.locator("#view-menu")).toBeVisible();
-  await page.keyboard.press("End");             // Apps, the last view
+  await page.keyboard.press("End");             // Admin, the last view
+  await page.keyboard.press("ArrowUp");
   await page.keyboard.press("ArrowUp");
   await page.keyboard.press("ArrowUp");
   await page.keyboard.press("ArrowUp");

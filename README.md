@@ -34,12 +34,23 @@ docs/DESIGN.md                  how it looks, and every design decision
 
 ## Accounts and settings
 
-Made in **Supabase Studio**, not in the board:
+On the board's **Admin** page (admins only, `js/views/admin.js`):
 
-- **People:** Authentication -> Add user (with a `name` in user metadata if
-  you like). They get a viewer profile with no sites; set `role`, `sites`
-  and `home_site` in the `profiles` table.
-- **Sites, rooms, departments, apps:** their tables.
+- **People:** add an account with a name, email and starting password, and
+  set its role, sites and Staff page. Tell them the password yourself -
+  there are no invite or reset emails. An admin can't remove their own
+  admin role or delete their own account. Accounts go through the `api`
+  function's `/admin/users` routes, which need the server key.
+- **Sites:** name, full name, colour, logo, number prefix, order and pages.
+- **Rooms and departments:** add, rename, reorder, delete. A rename updates
+  the sessions or courses using it; one still in use can't be deleted.
+
+In **Supabase Studio** only:
+
+- **The first admin**, or anyone when no admin can: Authentication -> Add
+  user, then set `role` in the `profiles` table. (Invites send a link the
+  board can't use yet - add people with a password instead.)
+- **Adding or deleting a site, its code, and apps:** their tables.
 - **App card images:** upload to the `SaIL-Away` storage bucket under
   `apps/`, and put the file name (e.g. `esr.png`) in the app's `image`. The
   bucket is private; signed-in people get short-lived links.

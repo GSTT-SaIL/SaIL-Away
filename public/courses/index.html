@@ -97,7 +97,7 @@ h1 { font-size: var(--t-display); font-weight: 700; letter-spacing: -.02em; marg
 // address (so it's never in a server log or sent on to another site); it
 // goes to the server in a header, not the URL.
 const API = window.SUPABASE_URL + "/functions/v1/api/public/courses/upcoming";
-const LINK = decodeURIComponent(location.hash.slice(1));
+const LINK = (() => { try { return decodeURIComponent(location.hash.slice(1)); } catch { return ""; } })();   // a mangled "#%" gets "not valid", not a dead page
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

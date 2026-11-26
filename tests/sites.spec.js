@@ -238,7 +238,7 @@ test("All: admins only, Courses and Timetable, nothing editable", async ({ page 
   await pickSite(page, "All");
   await expect(page.locator("#rows .grouphead").first()).toBeVisible();
   await expect(page.locator('#rows .grouphead[aria-expanded="true"]')).toHaveCount(0);
-  expect(await views(page)).toEqual(["Courses", "Timetable", "Rota", "Staff"]);
+  expect(await views(page)).toEqual(["Courses", "Timetable", "Rota", "Staff", "Admin"]);
   await expect(page.locator("#edit-toggle")).toBeHidden();
   await expect(page.locator("#brand-mark .nm")).toHaveText("All");
 
