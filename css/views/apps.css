@@ -20,3 +20,28 @@
 #pane-apps .appbody p{margin:0;font-size:var(--t-m);color:var(--fg-2);line-height:1.4;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 #pane-apps .apphost{margin-top:auto;padding-top:6px;font-size:var(--t-s);color:var(--fg-3)}
+
+/* Edit mode (2026-11-27): every card opens its editor, ringed in the edit
+   colour; the dashed "Add app" card and any apps hidden from your role
+   appear only now. */
+#pane-apps .appadd,#pane-apps .appcard.offrole{display:none}
+body.editing #pane-apps .appcard{cursor:pointer;box-shadow:var(--shadow-raised),0 0 0 2px color-mix(in srgb,var(--edit) 35%,transparent)}
+body.editing #pane-apps .appcard:hover{transform:none}
+body.editing #pane-apps .appcard.offrole{display:flex;opacity:.6}
+body.editing #pane-apps .appadd{display:flex;align-items:center;justify-content:center;gap:8px;min-height:180px;
+  border:2px dashed var(--line-strong);box-shadow:none;background:transparent;color:var(--accent);
+  font:inherit;font-size:var(--t-base);font-weight:600}
+body.editing #pane-apps .appadd:hover{background:var(--row-hover)}
+#pane-apps .appaddplus{font-size:24px;line-height:1}
+#pane-apps .appnote{font-size:var(--t-s);color:var(--edit);font-weight:500}
+#pane-apps .appgrid+.empty,#pane-apps .empty+.appgrid{margin-top:16px}
+
+/* The app's editor (item pop-up, .admf in admin.css): the picture preview,
+   same 16:9 tile as the card. */
+#backdrop .appedimg{display:flex;flex-direction:column;gap:10px}
+#backdrop .appedimg .appimg{width:240px;aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;background:var(--group);
+  display:flex;align-items:center;justify-content:center}
+#backdrop .appedimg .appimg img{width:100%;height:100%;object-fit:cover;display:block}
+#backdrop .appedimg .appimg span{font-size:36px;font-weight:700;color:var(--app)}
+#backdrop .appedimg .appimg[style]{background:color-mix(in srgb,var(--app) 12%,var(--bg))}
+#backdrop .appedimg label.sbtn{cursor:pointer;display:inline-flex;align-items:center;justify-content:center}

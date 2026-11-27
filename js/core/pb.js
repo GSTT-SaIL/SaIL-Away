@@ -401,6 +401,18 @@ const files = {
     for(const d of data || []) if(d.signedUrl && !d.error) out[d.path.slice(5)] = d.signedUrl;
     return out;
   },
+  // A new app picture (admins and editors; the bucket takes PNG, JPEG and
+  // WebP up to 5 MB). Stored under a fresh random name, never over another;
+  // returns the name to put in the app's image.
+  async uploadAppImage(file){
+    const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" }[file.type];
+    if(!ext) throw new ClientError(400, "Picture: use a PNG, JPEG or WebP image.");
+    if(file.size > 5 * 1024 * 1024) throw new ClientError(400, "Picture: that's over 5 MB - use a smaller image.");
+    const name = crypto.randomUUID().replace(/-/g, "").slice(0, 20) + "." + ext;
+    const { error } = await sb.storage.from(BUCKET).upload("apps/" + name, file, { contentType: file.type, upsert: false });
+    if(error) throw new ClientError(400, "Picture: " + (error.message || "couldn't upload it."));
+    return name;
+  },
 };
 
 export const pb = { authStore, collection, filter, send, files };

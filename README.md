@@ -49,15 +49,21 @@ On the board's **Admin** page (admins only, `js/views/admin.js`):
 - **Rooms and departments:** add, rename, reorder, delete. A rename updates
   the sessions or courses using it; one still in use can't be deleted.
 
+On the **Apps** page in **Edit** mode (admins, and editors on their sites):
+
+- **Apps:** add, change and delete cards - title, description, link,
+  picture, who sees it, sites and order. Pictures upload to the private
+  `SaIL-Away` bucket under `apps/` (PNG, JPEG or WebP, up to 5 MB);
+  signed-in people get short-lived links. An app on several sites can only
+  be changed by an admin or an editor of all of them.
+
 In **Supabase Studio** only:
 
 - **The first admin**, or anyone when no admin can: Authentication -> Add
   user, then set `role` in the `profiles` table. (Invites send a link the
   board can't use yet - add people with a password instead.)
-- **Adding or deleting a site, its code, and apps:** their tables.
-- **App card images:** upload to the `SaIL-Away` storage bucket under
-  `apps/`, and put the file name (e.g. `esr.png`) in the app's `image`. The
-  bucket is private; signed-in people get short-lived links.
+- **Adding or deleting a site, and its code:** the `sites` table.
+- **Tidying old app pictures:** replaced ones stay in the bucket.
 - **Eventbrite tokens and the staff access code:** `site_secrets` - never in
   the repo, never sent to a browser.
 - Public sign-ups are switched off.
