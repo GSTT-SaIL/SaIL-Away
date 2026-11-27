@@ -65,7 +65,9 @@ In **Supabase Studio** only:
 - **Adding or deleting a site, and its code:** the `sites` table.
 - **Tidying old app pictures:** replaced ones stay in the bucket.
 - **Eventbrite tokens and the staff access code:** `site_secrets` - never in
-  the repo, never sent to a browser.
+  the repo. Tokens never reach a browser; the staff code goes only into the
+  Book links on the staff course list (`public/courses`), for courses with
+  hidden free tickets, so anyone with a valid course-list link can see it.
 - Public sign-ups are switched off.
 
 ## Working on it

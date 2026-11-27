@@ -621,6 +621,16 @@ async function formPost(req: Request, code: string) {
 
 const COURSES_TTL = 300_000;
 
+// The Book link, with the site's staff access code added (?discount=) when the
+// course has hidden free tickets, so staff land on Eventbrite with the free
+// GSTT ticket already showing. The code reaches anyone holding a valid link.
+function staffLink(ev: any, code: string) {
+  const url = String(ev.url || "");
+  const staff = (ev.ticket_classes || []).some((t: any) => t.hidden && t.free);
+  if (!url || !code || !staff) return url;
+  try { const u = new URL(url); u.searchParams.set("discount", code); return u.toString(); } catch { return url; }
+}
+
 async function publicCourses(req: Request) {
   const token = String(req.headers.get("X-Link") || "");
   let ok = false;
@@ -641,7 +651,7 @@ async function publicCourses(req: Request) {
     const events: any[] = [];
     for (let page = 1; page <= 20; page++) {
       const d = await ebGet(site.token, `/organizations/${org}/events/`, { status: "live", time_filter: "current_future",
-        order_by: "start_asc", expand: "venue,ticket_availability", page_size: "50", page: String(page) });
+        order_by: "start_asc", expand: "venue,ticket_availability,ticket_classes", page_size: "50", page: String(page) });
       events.push(...(d.events || []));
       if (!d.pagination?.has_more_items) break;
     }
@@ -649,7 +659,7 @@ async function publicCourses(req: Request) {
       const ta = x.ticket_availability || {}, lo = ta.minimum_ticket_price || {}, hi = ta.maximum_ticket_price || {};
       return {
         name: x.name?.text || "", summary: x.summary || "", start: x.start?.local || "", end: x.end?.local || "",
-        online: !!x.online_event, venue: x.venue?.name || "", url: x.url || "", image: x.logo?.url || "",
+        online: !!x.online_event, venue: x.venue?.name || "", url: staffLink(x, site.staffCode), image: x.logo?.url || "",
         sold_out: !!ta.is_sold_out, price_min: Number(lo.major_value || 0), price_max: Number(hi.major_value || 0),
       };
     });
